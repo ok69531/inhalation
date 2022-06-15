@@ -126,5 +126,5 @@ result = []
 for seed_ in range(200):
       result.append(ppm_ordinal_main(seed_))
       
-pd.DataFrame(result).to_csv('../test_results/ppm_ordinal.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../test_results/fingerprints/ppm_ordinal.csv', header = True, index = False)
 wandb.finish()
