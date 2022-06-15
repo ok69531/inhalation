@@ -46,7 +46,7 @@ def main(seed_):
       
       path = '../../data/'
 
-      mgl, mgl_features, mgl_y = mgl_feat_load()
+      mgl, mgl_features, mgl_y = mgl_feat_load(path)
       train_mgl_features, train_mgl_y, test_mgl_features, test_mgl_y = data_split(
             mgl_features,
             mgl_y.category,
