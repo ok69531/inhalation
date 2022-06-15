@@ -1,11 +1,12 @@
 import sys
-sys.path.append('../../../../')
+sys.path.append('../')
 
 from utils import (
-    ppm_fing_load, 
-    data_split,
-    ParameterGrid,
-    MultiCV
+      ppm_fing_load, 
+      data_split,
+      ParameterGrid,
+      MultiCV, 
+      OrdinalLogitClassifier
 )
 
 import time
@@ -40,11 +41,11 @@ except:
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-ppm-logistic", entity="soyoung")
+wandb.init(project="LC50-ppm-ordinal", entity="soyoung")
 
     
 
-def ppm_logit_main(seed_):
+def ppm_ordinal_main(seed_):
     
     path = '../../data/'
     
@@ -70,7 +71,7 @@ def ppm_logit_main(seed_):
     #     '\n비율\n', test_ppm_y.value_counts(normalize = True).sort_index())
     
     '''
-        Logistic Regression with ppm data
+        Ordinal Regression with ppm data
     '''
     
     params_dict = {
@@ -85,36 +86,36 @@ def ppm_logit_main(seed_):
     ppm_ordinal_result = MultiCV(
         train_ppm_fingerprints, 
         train_ppm_y, 
-        LogisticRegression,
+        OrdinalLogitClassifier,
         params
     )
 
     max_tau_idx = ppm_ordinal_result.val_tau.argmax(axis = 0)
     best_params = ppm_ordinal_result.iloc[max_tau_idx][:4].to_dict()
 
-    logit = LogisticRegression(**best_params)
-    logit.fit(train_ppm_fingerprints, train_ppm_y)
-    ppm_logit_pred = logit.predict(test_ppm_fingerprints)
+    ordinal = OrdinalLogitClassifier(**best_params)
+    ordinal.fit(train_ppm_fingerprints, train_ppm_y)
+    ppm_ordinal_pred = ordinal.predict(test_ppm_fingerprints)
       
     result_ = {
         'seed': seed_,
         'parameters': best_params,
-        'precision': precision_score(test_ppm_y, ppm_logit_pred, average = 'macro'), 
-        'recall': recall_score(test_ppm_y, ppm_logit_pred, average = 'macro'), 
-        'f1': f1_score(test_ppm_y, ppm_logit_pred, average = 'macro'), 
-        'accuracy': accuracy_score(test_ppm_y, ppm_logit_pred),
-        'tau': stats.kendalltau(test_ppm_y, ppm_logit_pred).correlation
+        'precision': precision_score(test_ppm_y, ppm_ordinal_pred, average = 'macro'), 
+        'recall': recall_score(test_ppm_y, ppm_ordinal_pred, average = 'macro'), 
+        'f1': f1_score(test_ppm_y, ppm_ordinal_pred, average = 'macro'), 
+        'accuracy': accuracy_score(test_ppm_y, ppm_ordinal_pred),
+        'tau': stats.kendalltau(test_ppm_y, ppm_ordinal_pred).correlation
       }
             
 
     wandb.log({
         'seed': seed_,
         'parameters': best_params,
-        'precision': precision_score(test_ppm_y, ppm_logit_pred, average = 'macro'), 
-        'recall': recall_score(test_ppm_y, ppm_logit_pred, average = 'macro'), 
-        'f1': f1_score(test_ppm_y, ppm_logit_pred, average = 'macro'), 
-        'accuracy': accuracy_score(test_ppm_y, ppm_logit_pred),
-        'tau': stats.kendalltau(test_ppm_y, ppm_logit_pred).correlation
+        'precision': precision_score(test_ppm_y, ppm_ordinal_pred, average = 'macro'), 
+        'recall': recall_score(test_ppm_y, ppm_ordinal_pred, average = 'macro'), 
+        'f1': f1_score(test_ppm_y, ppm_ordinal_pred, average = 'macro'), 
+        'accuracy': accuracy_score(test_ppm_y, ppm_ordinal_pred),
+        'tau': stats.kendalltau(test_ppm_y, ppm_ordinal_pred).correlation
     })
       
       
@@ -123,7 +124,7 @@ def ppm_logit_main(seed_):
 
 result = []
 for seed_ in range(200):
-      result.append(ppm_logit_main(seed_))
+      result.append(ppm_ordinal_main(seed_))
       
-pd.DataFrame(result).to_csv('../test_results/fingerprints/ppm_logit.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../test_results/fingerprints/ppm_ordinal.csv', header = True, index = False)
 wandb.finish()

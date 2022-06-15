@@ -1,14 +1,12 @@
 import sys
-sys.path.append('../../../../')
+sys.path.append('../../../')
 
 from utils import (
-      mgl_fing_load,
+      mgl_feat_load,
       data_split,
       ParameterGrid,
-      MultiCV,
-      OrdinalLogitClassifier
+      MultiCV
 )
-
 
 import time
 import random
@@ -30,8 +28,6 @@ from sklearn.metrics import (
     accuracy_score
     )
 
-# warnings.filterwarnings("ignore")
-
 try:
       import wandb
 except: 
@@ -40,12 +36,13 @@ except:
       subprocess.check_call([sys.executable, "-m", "pip", "install", "wandb"])
       import wandb
 
+warnings.filterwarnings("ignore")
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-mgl-ordinal", entity="soyoung")
+wandb.init(project="LC50-mgl-logistic", entity="soyoung")
 
 
-def mgl_ordinal_main(seed_):
+def mgl_logit_main(seed_):
       
       path = '../../data/'
 
@@ -72,51 +69,52 @@ def mgl_ordinal_main(seed_):
 
 
       '''
-            Ordinal Regression with mg/l data
+            Logistic Regression with mg/l data
       '''
       
       params_dict = {
             'random_state': [seed_], 
             'penalty': ['l1', 'l2'],
+            # 'C': np.logspace(-10, 10, num = 100, base = 2),
             'C': np.linspace(1e-6, 50, 100),
             'solver': ['liblinear', 'saga']
             }
 
       params = ParameterGrid(params_dict)
 
-      mgl_ordinal_result = MultiCV(
+      mgl_logit_result = MultiCV(
             train_mgl_fingerprints, 
             train_mgl_y, 
-            OrdinalLogitClassifier,
+            LogisticRegression,
             params
       )
 
-      max_tau_idx = mgl_ordinal_result.val_tau.argmax(axis = 0)
-      best_params = mgl_ordinal_result.iloc[max_tau_idx][:4].to_dict()
+      max_tau_idx = mgl_logit_result.val_tau.argmax(axis = 0)
+      best_params = mgl_logit_result.iloc[max_tau_idx][:4].to_dict()
 
-      ordinal = OrdinalLogitClassifier(**best_params)
-      ordinal.fit(train_mgl_fingerprints, train_mgl_y)
-      mgl_ordinal_pred = ordinal.predict(test_mgl_fingerprints)
+      logit = LogisticRegression(**best_params)
+      logit.fit(train_mgl_fingerprints, train_mgl_y)
+      mgl_logit_pred = logit.predict(test_mgl_fingerprints)
       
       result_ = {
             'seed': seed_,
             'parameters': best_params,
-            'precision': precision_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'recall': recall_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'f1': f1_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'accuracy': accuracy_score(test_mgl_y, mgl_ordinal_pred),
-            'tau': stats.kendalltau(test_mgl_y, mgl_ordinal_pred).correlation
+            'precision': precision_score(test_mgl_y, mgl_logit_pred, average = 'macro'), 
+            'recall': recall_score(test_mgl_y, mgl_logit_pred, average = 'macro'), 
+            'f1': f1_score(test_mgl_y, mgl_logit_pred, average = 'macro'), 
+            'accuracy': accuracy_score(test_mgl_y, mgl_logit_pred),
+            'tau': stats.kendalltau(test_mgl_y, mgl_logit_pred).correlation
       }
             
 
       wandb.log({
             'seed': seed_,
             'parameters': best_params,
-            'precision': precision_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'recall': recall_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'f1': f1_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'accuracy': accuracy_score(test_mgl_y, mgl_ordinal_pred),
-            'tau': stats.kendalltau(test_mgl_y, mgl_ordinal_pred).correlation
+            'precision': precision_score(test_mgl_y, mgl_logit_pred, average = 'macro'), 
+            'recall': recall_score(test_mgl_y, mgl_logit_pred, average = 'macro'), 
+            'f1': f1_score(test_mgl_y, mgl_logit_pred, average = 'macro'), 
+            'accuracy': accuracy_score(test_mgl_y, mgl_logit_pred),
+            'tau': stats.kendalltau(test_mgl_y, mgl_logit_pred).correlation
             })
       
       
@@ -140,7 +138,7 @@ def mgl_ordinal_main(seed_):
 
 result = []
 for seed_ in range(200):
-      result.append(mgl_ordinal_main(seed_))
-
-pd.DataFrame(result).to_csv('../test_results/fingerprints/mgl_ordinal.csv', header = True, index = False)
+      result.append(mgl_logit_main(seed_))
+      
+pd.DataFrame(result).to_csv('../test_results/fingerprints/mgl_logit.csv', header = True, index = False)
 wandb.finish()
