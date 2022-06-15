@@ -140,5 +140,5 @@ result = []
 for seed_ in range(200):
       result.append(mgl_ordrf_main(seed_))
 
-pd.DataFrame(result).to_csv('../test_results/fingerprints/mgl_ordrf.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/fingerprints/mgl_ordrf.csv', header = True, index = False)
 wandb.finish()
