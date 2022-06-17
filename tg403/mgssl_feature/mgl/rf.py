@@ -23,7 +23,7 @@ from sklearn.metrics import (
     recall_score, 
     f1_score, 
     accuracy_score
-    )
+)
 
 try:
       import wandb
@@ -60,11 +60,11 @@ def main(seed_):
 
       params_dict = {
             'random_state': [seed_], 
-            'n_estimators': np.arange(30, 155, 10),
-            'min_samples_split': list(range(2, 9)),
+            'n_estimators': np.arange(60, 155, 10),
+            'min_samples_split': list(range(2, 6)),
             'max_features': ['auto', 'sqrt', 'log2'],
             'class_weight': [None, {0:1.3, 1:2, 2:5.3, 3:0.6, 4:0.8}]
-            }
+      }
 
       params = ParameterGrid(params_dict)
 

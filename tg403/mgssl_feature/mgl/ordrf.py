@@ -63,11 +63,11 @@ def main(seed_):
       
       params_dict = {
           'random_state': [seed_], 
-          'n_estimators': np.arange(30, 155, 10),
-          'min_samples_split': list(range(2, 9)),
+          'n_estimators': np.arange(50, 155, 10),
+          'min_samples_split': list(range(2, 7)),
           'max_features': ['auto', 'sqrt', 'log2']
-          }
-
+      }
+      
       params = ParameterGrid(params_dict)
 
       cv_result = MultiCV(
