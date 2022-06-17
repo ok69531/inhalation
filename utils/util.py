@@ -1,7 +1,8 @@
 import openpyxl
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+from pandas.api.types import CategoricalDtype
 
 from tqdm import tqdm
 
@@ -33,6 +34,9 @@ from sklearn.metrics import (
     )
 
 
+
+
+
 def Smiles2Fing(smiles):
     ms_tmp = [Chem.MolFromSmiles(i) for i in smiles]
     ms_none_idx = [i for i in range(len(ms_tmp)) if ms_tmp[i] == None]
@@ -53,12 +57,15 @@ def Smiles2Fing(smiles):
     return ms_none_idx, fingerprints
 
 
+cat_type = CategoricalDtype(categories = range(5), ordered = True)
+
 def mgl_fing_load(path):
     mgl = pd.read_excel(path + 'mgl.xlsx')
     
     # smiles to fingerprints
     mgl_drop_idx, mgl_fingerprints = Smiles2Fing(mgl.SMILES)
     mgl_y = mgl[['value', 'category']].drop(mgl_drop_idx).reset_index(drop = True)
+    mgl_y.category = mgl_y.category.astype(cat_type)
     
     # quantile 기준으로 범주 구성
     # mgl_y = pd.DataFrame({'value': mgl_y, 'category': pd.qcut(mgl_y, 5, labels = range(5))})
@@ -73,6 +80,7 @@ def mgl_feat_load(path):
     
     mgl_features = mgl[['feat' + str(i) for i in range(300)]]
     mgl_y = mgl[['value', 'category']]
+    mgl_y.category = mgl_y.category.astype(cat_type)
     
     # quantile 기준으로 범주 구성
     # mgl_y = pd.DataFrame({'value': mgl_y, 'category': pd.qcut(mgl_y, 5, labels = range(5))})
@@ -87,6 +95,8 @@ def ppm_fing_load(path):
 
     ppm_drop_idx, ppm_fingerprints = Smiles2Fing(ppm.SMILES)
     ppm_y = ppm[['value', 'category']].drop(ppm_drop_idx).reset_index(drop = True)
+    ppm_y.category = ppm_y.category.astype(cat_type)
+    
     # ppm_y = pd.DataFrame({'value': ppm_y, 'category': pd.qcut(ppm_y, 5, labels = range(5))})
     
     return(ppm,
@@ -99,6 +109,7 @@ def ppm_feat_load(path):
     
     ppm_features = ppm[['feat' + str(i) for i in range(300)]]
     ppm_y = ppm[['value', 'category']]
+    ppm_y.category = ppm_y.category.astype(cat_type)
     
     # quantile 기준으로 범주 구성
     # mgl_y = pd.DataFrame({'value': mgl_y, 'category': pd.qcut(mgl_y, 5, labels = range(5))})
