@@ -63,8 +63,8 @@ def main(seed_):
       
       params_dict = {
           'random_state': [seed_], 
-          'n_estimators': np.arange(50, 155, 10),
-          'min_samples_split': list(range(2, 7)),
+          'n_estimators': np.arange(60, 155, 10),
+          'min_samples_split': list(range(2, 6)),
           'max_features': ['auto', 'sqrt', 'log2']
       }
       
