@@ -12,4 +12,4 @@ __pycache__/
 wandb
 SLURM*
 .sh
-# .neptune
+.neptune
