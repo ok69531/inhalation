@@ -80,7 +80,7 @@ def main(seed_):
       params_dict = {
             'random_state': [seed_], 
             'penalty': ['l1', 'l2'],
-            'C': np.linspace(1e-6, 100, 40),
+            'C': np.linspace(1e-6, 50, 30),
             'solver': ['liblinear', 'saga']
       }
 
