@@ -160,7 +160,7 @@ def main(seed_):
     
     params_dict = {
         'learning_rate': [0.01, 0.001],
-        'epochs': [30, 50, 100, 500, 1000]
+        'epochs': [1000, 5000, 10000]
     }
     params_grid = ParameterGrid(params_dict)
     
