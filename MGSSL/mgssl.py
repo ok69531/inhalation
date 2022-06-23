@@ -309,13 +309,14 @@ feature = pd.DataFrame(pred.cpu().data.numpy())
 feature.columns = ['feat' + str(i) for i in range(300)] 
 
 mgl = pd.read_excel('../tg403/data/mgl.xlsx')
-smiles_list = ppm['SMILES']
+smiles_list = mgl['SMILES']
 rdkit_mol_objs_list = [AllChem.MolFromSmiles(s) for s in smiles_list]
 mgl_none_idx = [i for i in range(len(rdkit_mol_objs_list)) if rdkit_mol_objs_list[i] == None]
-ppm = ppm.drop(mgl_none_idx).reset_index(drop = True)
+mgl = mgl.drop(mgl_none_idx).reset_index(drop = True)
 
-ppm_feature = pd.concat([ppm, feature], axis = 1)
-ppm_feature.to_excel('../tg403/data/ppm_feature.xlsx', header = True, index = False)
+mgl_feature = pd.concat([mgl, feature], axis = 1)
+mgl_feature.to_excel('../tg403/data/mgl_feature.xlsx', header = True, index = False)
+
 
 # ppm = pd.read_excel('../tg403/data/ppm.xlsx')
 # smiles_list = ppm['SMILES']
