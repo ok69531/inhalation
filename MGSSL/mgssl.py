@@ -39,7 +39,7 @@ print('GPU: ', torch.cuda.get_device_name(0))
 #%%
 device = torch.device("cuda:0")
 
-dataset_name = "tg403_ppm"
+dataset_name = "tg403_mgl"
 num_task = 1
 
 
@@ -298,6 +298,7 @@ loader = DataLoader(dataset, batch_size = len(dataset), shuffle = False, num_wor
 
 model = GNN_extract(5, 300, num_tasks=num_task, JK='last', drop_ratio=0.2, graph_pooling='mean', gnn_type='gin').to(device)
 model.from_pretrained('saved_model/init.pth')
+model.eval()
 model.to(device)
 
 for step, batch in enumerate(loader):
@@ -307,7 +308,7 @@ for step, batch in enumerate(loader):
 feature = pd.DataFrame(pred.cpu().data.numpy())
 feature.columns = ['feat' + str(i) for i in range(300)] 
 
-ppm = pd.read_excel('../tg403/data/ppm.xlsx')
+mgl = pd.read_excel('../tg403/data/mgl.xlsx')
 smiles_list = ppm['SMILES']
 rdkit_mol_objs_list = [AllChem.MolFromSmiles(s) for s in smiles_list]
 mgl_none_idx = [i for i in range(len(rdkit_mol_objs_list)) if rdkit_mol_objs_list[i] == None]
@@ -315,3 +316,12 @@ ppm = ppm.drop(mgl_none_idx).reset_index(drop = True)
 
 ppm_feature = pd.concat([ppm, feature], axis = 1)
 ppm_feature.to_excel('../tg403/data/ppm_feature.xlsx', header = True, index = False)
+
+# ppm = pd.read_excel('../tg403/data/ppm.xlsx')
+# smiles_list = ppm['SMILES']
+# rdkit_mol_objs_list = [AllChem.MolFromSmiles(s) for s in smiles_list]
+# mgl_none_idx = [i for i in range(len(rdkit_mol_objs_list)) if rdkit_mol_objs_list[i] == None]
+# ppm = ppm.drop(mgl_none_idx).reset_index(drop = True)
+
+# ppm_feature = pd.concat([ppm, feature], axis = 1)
+# ppm_feature.to_excel('../tg403/data/ppm_feature.xlsx', header = True, index = False)
