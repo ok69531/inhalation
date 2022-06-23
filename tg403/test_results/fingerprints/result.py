@@ -8,8 +8,8 @@ def report(file):
     
     df = df_tmp[metric]
     
-    avg = df.mean(axis = 0)
-    se = df.sem(axis = 0)
+    avg = df.mean(axis = 0).round(3)
+    se = df.sem(axis = 0).round(3)
     
     print('accuracy = ', avg['accuracy'], '(', se['accuracy'], ')',
           '\nprecision = ', avg['precision'], '(', se['precision'], ')', 
