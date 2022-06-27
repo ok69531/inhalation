@@ -162,8 +162,8 @@ for p in range(page_num):
                 
                 elif len(key) != len(value) and key[0] == '' and value[0] == 'Key result':
                     key = key[1:]
-                    value = value[1:len(key)] + ['. '.join(value[len(key):])]
-                    result_dict = dict(zip(key, value))
+                    value_ = value[1:len(key)] + ['. '.join(value[len(key):])]
+                    result_dict = dict(zip(key, value_))
                 
                 chem_dict_.update(result_dict)
                 result_.append(chem_dict_)
@@ -176,13 +176,17 @@ for p in range(page_num):
         driver.switch_to.window(driver.window_handles[0])
         
         row.set_postfix({'page': p})
-    
+        
     next_page_path = '/html/body/echem-root/div/echem-substance-search-page/echem-property-search-results-container/echem-pagination/div/div[2]/a[3]'
     driver.find_element_by_xpath(next_page_path).click()
+    time.sleep(1.5)
     
     
 print(time.time() - start)
 
         
 #%%
-pd.DataFrame(result_)
+result = pd.DataFrame(result_)
+result = result.drop([''], axis = 1)
+
+result.to_excel('tg412_raw.xlsx', header=  True, index = False)
