@@ -43,14 +43,19 @@ ca_idx = [i for i in range(len(lc50)) if len(re.findall('ca\.', str(lc50['Effect
 lc50['Effect level'][ca_idx] = [re.sub('ca\. ', '', lc50['Effect level'][i]) for i in ca_idx]
 
 
+# 단위 통일
+for i in range(lc50.shape[0]):
+    lc50['Effect level'][i] = re.sub('mg/m³|mg/m3', 'mg/m^3', str(lc50['Effect level'][i]))
+    lc50['Effect level'][i] = re.sub('g/m3', 'g/m\^3', str(lc50['Effect level'][i]))
+    lc50['Effect level'][i] = re.sub('mg/l', 'mg/L', str(lc50['Effect level'][i]))
+
+
+# Value (value) 에서 괄호 안에 값 제거
+np.unique([re.findall('\(.*?\)', str(i)) for i in lc50['Effect level']])
+lc50['Effect level'] = [re.sub('\(.*?\)', '', str(i)) for i in lc50['Effect level']]
+
 # Value datframe
-val_df = lc50[['Chemical', 'CasRN', 'Dose descriptor', 'Effect level', 'Exp. duration']].copy()
-
-for i in range(val_df.shape[0]):
-    val_df['Effect level'][i] = re.sub('mg/m³|mg/m3', 'mg/m^3', str(val_df['Effect level'][i]))
-    val_df['Effect level'][i] = re.sub('g/m3', 'g/m\^3', str(val_df['Effect level'][i]))
-    val_df['Effect level'][i] = re.sub('mg/l', 'mg/L', str(val_df['Effect level'][i]))
-
+val_df = lc50.copy()
 val_df['Value_split'] = [val_df['Effect level'][i].split(' ') for i in range(len(val_df))]
 
 
@@ -60,6 +65,7 @@ val_df['range_cat'] = [len(re.findall('-', val_df['Effect level'][i])) for i in 
 range_idx = val_df['range_cat'][val_df['range_cat'] != 0].index
 idx = set(list(range(val_df.shape[0]))) - set(range_idx)
 val_df.iloc[range_idx]
+
 
 #%%
 # range가 아닌 value들부터
@@ -106,36 +112,49 @@ for i in idx:
 
 
 # 단위
-val_df['unit'] = ''
+# val_df['unit'] = ''
+u_ = ['µg/m^3', 'mg/m^3', 'g/m^3', 'mg/L', 'ppm']
+val_df['unit'] = val_df['Effect level'].apply(lambda x: ''.join(y for y in x.split() if y in u_))
 
 for i in idx:
     try:
-        val_df['unit'][i] = re.findall('g/m\^3|mg/m\^3|mg/L|ppm', val_df['Effect level'][i])[0]
-        val_df['Value_split'][i].remove(re.findall('g/m\^3|mg/m\^3|mg/L|ppm', val_df['Effect level'][i])[0])
+        val_df['Value_split'][i].remove(val_df['unit'][i])
+    except ValueError:
+        pass
+    # try:
+        # u_ = re.compile('\u03BCg/m^3|mg/m\^3|g/m\^3|mg/L|ppm')
+        # u_ = re.compile('µg/m^3|mg/m\^3|g/m\^3|mg/L|ppm')
+        # val_df['unit'][i] = re.findall(u_, val_df['Effect level'][i])[0]
+        # val_df['Value_split'][i].remove(re.findall('µg/m^3|g/m\^3|mg/m\^3|mg/L|ppm', val_df['Effect level'][i])[0])
 
-    except IndexError:
-        val_df['unit'][i] = np.nan
-
+    # except IndexError:
+    #     val_df['unit'][i] = np.nan
 
 # air 
-for i in idx:
-    try:
-        if val_df['Value_split'][i][0] == 'air':
-            val_df['air'][i] = val_df['Value_split'][i][0]
-            del val_df['Value_split'][i][0]
-        else:
-            val_df['air'][i] = np.nan
-    except IndexError:
-        val_df['air'][i] = np.nan
+val_df['air'] = val_df['Effect level'].apply(lambda x: ''.join(y for y in x.split() if y in ['air']))
+
+
+# time
+val_df['Exp. duration'].unique()
+
+# for i in idx:
+#     try:
+#         if val_df['Value_split'][i][0] == 'air':
+#             val_df['air'][i] = val_df['Value_split'][i][0]
+#             del val_df['Value_split'][i][0]
+#         else:
+#             val_df['air'][i] = np.nan
+#     except IndexError:
+#         val_df['air'][i] = np.nan
 
 
 # nominal / analytical
-for i in idx:
-    try:
-        val_df['nominal/analytical'][i] = re.sub('\(|\)', '', val_df['Value_split'][i][-1])
-        del val_df['Value_split'][i][-1]
-    except IndexError:
-        val_df['nominal/analytical'][i] = np.nan
+# for i in idx:
+#     try:
+#         val_df['nominal/analytical'][i] = re.sub('\(|\)', '', val_df['Value_split'][i][-1])
+#         del val_df['Value_split'][i][-1]
+#     except IndexError:
+#         val_df['nominal/analytical'][i] = np.nan
 
 
 #%%
