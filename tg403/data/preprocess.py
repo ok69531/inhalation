@@ -137,6 +137,21 @@ val_df['air'] = val_df['Effect level'].apply(lambda x: ''.join(y for y in x.spli
 # time
 val_df['Exp. duration'].unique()
 
+val_df['time'] = ''
+val_df['time'][val_df['Exp. duration'].isna()] = np.nan
+
+time_idx = val_df[val_df['Exp. duration'].isna() == False].index
+
+for i in time_idx:
+    if isFloat(val_df['Exp. duration'][i]):
+        val_df['time'][i] = np.nan
+    
+    elif val_df['Exp. duration'][i].split(' ')[-1] == 'h':
+        val_df['time'][i] = float(val_df['Exp. duration'][i].split(' ')[0])
+    
+    elif val_df['Exp. duration'][i].split(' ')[-1] == 'min':
+        val_df['time'][i] = float(val_df['Exp. duration'][i].split(' ')[0])/60
+
 # for i in idx:
 #     try:
 #         if val_df['Value_split'][i][0] == 'air':
