@@ -176,9 +176,11 @@ for i in time_idx:
 # range_idx
 
 # 부등호
+val_df['upper_ineq'] = ''
+       
 for i in range_idx:
     try:
-        range_ineq = re.findall('>\=|<\=|>|<', val_df['Value_tmp'][i])
+        range_ineq = re.findall('>\=|<\=|>|<', val_df['Effect level'][i])
         val_df['lower_ineq'][i] = range_ineq[0]
         val_df['upper_ineq'][i] = range_ineq[1]
         
@@ -190,6 +192,8 @@ for i in range_idx:
 
 
 # value
+val_df['upper_value'] = ''
+
 for i in range_idx:
     try:
         if val_df['Value_split'][i].index('-') == 1:
@@ -213,31 +217,50 @@ for i in range_idx:
         
 
 
-# unit
-for i in range_idx:
+# # unit
+# for i in range_idx:
+#     try:
+#         val_df['unit'][i] = re.findall('g/m\^3|mg/m\^3|mg/L|ppm', val_df['Value_tmp'][i])[0]
+#         val_df['Value_split'][i] = [j for j in val_df['Value_split'][i] if j not in val_df['unit'][i]]
+#     except IndexError:
+#         val_df['unit'][i] = np.nan
+
+
+# # air
+# for i in range_idx:
+#     try:
+#         val_df['air'][i] = re.findall('air', val_df['Value_tmp'][i])[0]
+#         val_df['Value_split'][i] = [j for j in val_df['Value_split'][i] if j not in val_df['air'][i]]
+#     except IndexError:
+#         val_df['air'][i] = np.nan
+
+
+# # nominal/analytical
+# for i in range_idx:
+#     tmp = re.findall('\([a-z]*\)', val_df['Value_tmp'][i])
+#     try:
+#         val_df['nominal/analytical'][i] = re.sub('\(|\)', '', tmp[0])
+#     except IndexError:
+#         val_df['nominal/analytical'][i] = np.nan
+
+
+#%%
+# SMILES = 0 인 value 변환
+from urllib.request import urlopen
+from urllib.parse import quote 
+
+def CIRconvert(ids):
     try:
-        val_df['unit'][i] = re.findall('g/m\^3|mg/m\^3|mg/L|ppm', val_df['Value_tmp'][i])[0]
-        val_df['Value_split'][i] = [j for j in val_df['Value_split'][i] if j not in val_df['unit'][i]]
-    except IndexError:
-        val_df['unit'][i] = np.nan
+        url = 'http://cactus.nci.nih.gov/chemical/structure/' + quote(ids) + '/smiles'
+        ans = urlopen(url).read().decode('utf8')
+        return ans
+    except:
+        return '-'
 
+smi_idx = val_df['Final_SMILES'][val_df['Final_SMILES'] == 0].index
 
-# air
-for i in range_idx:
-    try:
-        val_df['air'][i] = re.findall('air', val_df['Value_tmp'][i])[0]
-        val_df['Value_split'][i] = [j for j in val_df['Value_split'][i] if j not in val_df['air'][i]]
-    except IndexError:
-        val_df['air'][i] = np.nan
-
-
-# nominal/analytical
-for i in range_idx:
-    tmp = re.findall('\([a-z]*\)', val_df['Value_tmp'][i])
-    try:
-        val_df['nominal/analytical'][i] = re.sub('\(|\)', '', tmp[0])
-    except IndexError:
-        val_df['nominal/analytical'][i] = np.nan
+smi_ =  [CIRconvert(i) for i in val_df['CasRN'][smi_idx]]
+val_df['Final_SMILES'][smi_idx] = smi_
 
 
 #%%
@@ -246,4 +269,4 @@ val_df.iloc[4871]
 
 
 val_df.drop(['Value_split', 'range_cat'], axis = 1, inplace = True)
-val_df.to_excel('inhalation403_lc50.xlsx', header = True, index = False)
+val_df.to_excel('tg403_lc50.xlsx', header = True, index = False)
