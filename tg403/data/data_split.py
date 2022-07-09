@@ -48,6 +48,7 @@ lc50_mgl_tmp['value'] = [lc50_mgl_tmp['lower_value'][i] if lc50_mgl_tmp['unit'][
                          else lc50_mgl_tmp['lower_value'][i]*0.001 if lc50_mgl_tmp['unit'][i] == 'mg/m^3' 
                          else lc50_mgl_tmp['lower_value'][i]*0.000001 for i in lc50_mgl_tmp.index]
 lc50_mgl = lc50_mgl_tmp.groupby(['CasRN', 'Final_SMILES'])['time', 'value'].mean().reset_index()
+lc50_mgl.columns = ['CasRN', 'SMILES', 'time','value']
 lc50_mgl['category'] = pd.cut(lc50_mgl.value, bins =[0, 0.5, 2.0, 10, 20, np.infty], labels = range(1, 6))
 # lc50_mgl['value'].describe()
 
