@@ -42,16 +42,17 @@ except:
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-mgl-ordinal", entity="soyoung")
+wandb.init(project="tg403-time-mgl", entity="soyoung")
+wandb.run.name = 'ordinal'
+wandb.run.save()
 
-
-def mgl_ordinal_main(seed_):
+def main(seed_):
       
       path = '../../data/'
 
-      mgl, mgl_fingerprints, mgl_y = mgl_fing_load(path)
-      train_mgl_fingerprints, train_mgl_y, test_mgl_fingerprints, test_mgl_y = data_split(
-            mgl_fingerprints,
+      mgl, mgl_x, mgl_y = mgl_fing_load(path)
+      train_x, train_y, test_x, test_y = data_split(
+            mgl_x,
             mgl_y.category,
             seed = seed_
       )
@@ -78,15 +79,15 @@ def mgl_ordinal_main(seed_):
       params_dict = {
             'random_state': [seed_], 
             'penalty': ['l1', 'l2'],
-            'C': np.linspace(1e-6, 50, 100),
+            'C': np.linspace(1e-6, 50, 50),
             'solver': ['liblinear', 'saga']
             }
 
       params = ParameterGrid(params_dict)
 
       mgl_ordinal_result = MultiCV(
-            train_mgl_fingerprints, 
-            train_mgl_y, 
+            train_x, 
+            train_y, 
             OrdinalLogitClassifier,
             params
       )
@@ -95,28 +96,28 @@ def mgl_ordinal_main(seed_):
       best_params = mgl_ordinal_result.iloc[max_tau_idx][:4].to_dict()
 
       ordinal = OrdinalLogitClassifier(**best_params)
-      ordinal.fit(train_mgl_fingerprints, train_mgl_y)
-      mgl_ordinal_pred = ordinal.predict(test_mgl_fingerprints)
+      ordinal.fit(train_x, train_y)
+      pred = ordinal.predict(test_x)
       
       result_ = {
             'seed': seed_,
             'parameters': best_params,
-            'precision': precision_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'recall': recall_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'f1': f1_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'accuracy': accuracy_score(test_mgl_y, mgl_ordinal_pred),
-            'tau': stats.kendalltau(test_mgl_y, mgl_ordinal_pred).correlation
+            'precision': precision_score(test_y, pred, average = 'macro'), 
+            'recall': recall_score(test_y, pred, average = 'macro'), 
+            'f1': f1_score(test_y, pred, average = 'macro'), 
+            'accuracy': accuracy_score(test_y, pred),
+            'tau': stats.kendalltau(test_y, pred).correlation
       }
             
 
       wandb.log({
             'seed': seed_,
             'parameters': best_params,
-            'precision': precision_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'recall': recall_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'f1': f1_score(test_mgl_y, mgl_ordinal_pred, average = 'macro'), 
-            'accuracy': accuracy_score(test_mgl_y, mgl_ordinal_pred),
-            'tau': stats.kendalltau(test_mgl_y, mgl_ordinal_pred).correlation
+            'precision': precision_score(test_y, pred, average = 'macro'), 
+            'recall': recall_score(test_y, pred, average = 'macro'), 
+            'f1': f1_score(test_y, pred, average = 'macro'), 
+            'accuracy': accuracy_score(test_y, pred),
+            'tau': stats.kendalltau(test_y, pred).correlation
             })
       
       
@@ -139,8 +140,8 @@ def mgl_ordinal_main(seed_):
 
 
 result = []
-for seed_ in range(200):
-      result.append(mgl_ordinal_main(seed_))
+for seed_ in range(50):
+      result.append(main(seed_))
 
-pd.DataFrame(result).to_csv('../../test_results/fingerprints/mgl_ordinal.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/time/mgl_ordinal.csv', header = True, index = False)
 wandb.finish()

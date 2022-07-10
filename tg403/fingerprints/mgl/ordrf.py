@@ -40,16 +40,18 @@ except:
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-mgl-ordrf", entity="soyoung")
+wandb.init(project="tg403-time-mgl", entity="soyoung")
+wandb.run.name = 'ordrf'
+wandb.run.save()
 
 
-def mgl_ordrf_main(seed_):
+def main(seed_):
       
       path = '../../data/'
 
-      mgl, mgl_fingerprints, mgl_y = mgl_fing_load(path)
-      train_mgl_fingerprints, train_mgl_y, test_mgl_fingerprints, test_mgl_y = data_split(
-            mgl_fingerprints,
+      mgl, mgl_x, mgl_y = mgl_fing_load(path)
+      train_x, train_y, test_x, test_y = data_split(
+            mgl_x,
             mgl_y.category,
             seed = seed_
       )
@@ -65,8 +67,8 @@ def mgl_ordrf_main(seed_):
       # print('train 범주에 포함된 데이터의 수\n', train_mgl_y.value_counts().sort_index(),
       #       '\n비율\n', train_mgl_y.value_counts(normalize = True).sort_index())
 
-      # print('test 범주에 포함된 데이터의 수\n', test_mgl_y.value_counts().sort_index(),
-      #       '\n비율\n', test_mgl_y.value_counts(normalize = True).sort_index())
+      # print('test 범주에 포함된 데이터의 수\n', test_y.value_counts().sort_index(),
+      #       '\n비율\n', test_y.value_counts(normalize = True).sort_index())
 
 
       '''
@@ -83,8 +85,8 @@ def mgl_ordrf_main(seed_):
       params = ParameterGrid(params_dict)
 
       mgl_ordrf_result = MultiCV(
-            train_mgl_fingerprints, 
-            train_mgl_y, 
+            train_x, 
+            train_y, 
             OrdinalRFClassifier,
             params
       )
@@ -93,52 +95,37 @@ def mgl_ordrf_main(seed_):
       best_params = mgl_ordrf_result.iloc[max_tau_idx][:4].to_dict()
 
       ordrf = OrdinalRFClassifier(**best_params)
-      ordrf.fit(train_mgl_fingerprints, train_mgl_y)
-      mgl_ordrf_pred = ordrf.predict(test_mgl_fingerprints)
+      ordrf.fit(train_x, train_y)
+      pred = ordrf.predict(test_x)
       
       result_ = {
             'seed': seed_,
             'parameters': best_params,
-            'precision': precision_score(test_mgl_y, mgl_ordrf_pred, average = 'macro'), 
-            'recall': recall_score(test_mgl_y, mgl_ordrf_pred, average = 'macro'), 
-            'f1': f1_score(test_mgl_y, mgl_ordrf_pred, average = 'macro'), 
-            'accuracy': accuracy_score(test_mgl_y, mgl_ordrf_pred),
-            'tau': stats.kendalltau(test_mgl_y, mgl_ordrf_pred).correlation
+            'precision': precision_score(test_y, pred, average = 'macro'), 
+            'recall': recall_score(test_y, pred, average = 'macro'), 
+            'f1': f1_score(test_y, pred, average = 'macro'), 
+            'accuracy': accuracy_score(test_y, pred),
+            'tau': stats.kendalltau(test_y, pred).correlation
       }
             
 
       wandb.log({
             'seed': seed_,
             'parameters': best_params,
-            'precision': precision_score(test_mgl_y, mgl_ordrf_pred, average = 'macro'), 
-            'recall': recall_score(test_mgl_y, mgl_ordrf_pred, average = 'macro'), 
-            'f1': f1_score(test_mgl_y, mgl_ordrf_pred, average = 'macro'), 
-            'accuracy': accuracy_score(test_mgl_y, mgl_ordrf_pred),
-            'tau': stats.kendalltau(test_mgl_y, mgl_ordrf_pred).correlation
+            'precision': precision_score(test_y, pred, average = 'macro'), 
+            'recall': recall_score(test_y, pred, average = 'macro'), 
+            'f1': f1_score(test_y, pred, average = 'macro'), 
+            'accuracy': accuracy_score(test_y, pred),
+            'tau': stats.kendalltau(test_y, pred).correlation
             })
       
-      
-      
-      # run = neptune.init(
-      # project="ok69531/LC50-mgl-logistic",
-      # api_token="my_api_token",
-      # ) 
-      
-      # run['parameters'] = best_params
-      # run['precision'] = precision_score(test_mgl_y, mgl_logit_pred, average = 'macro')
-      # run['recall'] = recall_score(test_mgl_y, mgl_logit_pred, average = 'macro')
-      # run['f1'] = f1_score(test_mgl_y, mgl_logit_pred, average = 'macro')
-      # run['accuracy'] = accuracy_score(test_mgl_y, mgl_logit_pred)
-      # run['tau'] = stats.kendalltau(test_mgl_y, mgl_logit_pred).correlation
-      
-      # run.stop()
       
       return result_
 
 
 result = []
-for seed_ in range(200):
-      result.append(mgl_ordrf_main(seed_))
+for seed_ in range(50):
+      result.append(main(seed_))
 
-pd.DataFrame(result).to_csv('../../test_results/fingerprints/mgl_ordrf.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/time/mgl_ordrf.csv', header = True, index = False)
 wandb.finish()

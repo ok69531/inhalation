@@ -40,7 +40,9 @@ warnings.filterwarnings("ignore")
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-mgl-mlp", entity="soyoung")
+wandb.init(project="tg403-time-mgl", entity="soyoung")
+wandb.run.name = 'mlp'
+wandb.run.save()
 
 
 
@@ -219,10 +221,10 @@ def main(seed_):
 
 
 result = []
-for seed_ in range(200):
+for seed_ in range(50):
       result.append(main(seed_))
       
-pd.DataFrame(result).to_csv('../../test_results/fingerprints/mgl_mlp.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/time/mgl_mlp.csv', header = True, index = False)
 wandb.finish()
 
 
