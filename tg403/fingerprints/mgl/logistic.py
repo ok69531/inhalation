@@ -138,7 +138,7 @@ def main(seed_):
 
 result = []
 for seed_ in range(50):
-      result.appendmgl_logit_main(seed_))
+      result.append(main(seed_))
       
 pd.DataFrame(result).to_csv('../../test_results/time/mgl_logit.csv', header = True, index = False)
 wandb.finish()
