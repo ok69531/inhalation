@@ -13,8 +13,6 @@ import warnings
 import pandas as pd
 import numpy as np
 
-import matplotlib.pyplot as plt
-
 from sklearn.ensemble import RandomForestClassifier
 
 import scipy.stats as stats
@@ -43,10 +41,10 @@ wandb.run.save()
 
 
 def main(seed_):
-      
+
       path = '../../data/'
 
-      mgl, mgl_x, mgl_y = mgl_fing_load()
+      mgl, mgl_x, mgl_y = mgl_fing_load(path)
       train_x, train_y, test_x, test_y = data_split(
             mgl_x,
             mgl_y.category,
