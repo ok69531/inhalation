@@ -30,7 +30,7 @@ from sklearn.metrics import (
     accuracy_score
     )
 
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
 try:
       import wandb
@@ -65,11 +65,11 @@ def main(seed_):
       # print('범주에 포함된 데이터의 수\n', mgl_y.category.value_counts().sort_index(),
       #       '\n비율\n', mgl_y.category.value_counts(normalize = True).sort_index())
 
-      # print('train 범주에 포함된 데이터의 수\n', train_mgl_y.value_counts().sort_index(),
-      #       '\n비율\n', train_mgl_y.value_counts(normalize = True).sort_index())
+      # print('train 범주에 포함된 데이터의 수\n', train_y.value_counts().sort_index(),
+      #       '\n비율\n', train_y.value_counts(normalize = True).sort_index())
 
-      # print('test 범주에 포함된 데이터의 수\n', test_mgl_y.value_counts().sort_index(),
-      #       '\n비율\n', test_mgl_y.value_counts(normalize = True).sort_index())
+      # print('test 범주에 포함된 데이터의 수\n', test_y.value_counts().sort_index(),
+      #       '\n비율\n', test_y.value_counts(normalize = True).sort_index())
 
 
       '''
@@ -98,7 +98,8 @@ def main(seed_):
       ordinal = OrdinalLogitClassifier(**best_params)
       ordinal.fit(train_x, train_y)
       pred = ordinal.predict(test_x)
-      
+
+
       result_ = {
             'seed': seed_,
             'parameters': best_params,

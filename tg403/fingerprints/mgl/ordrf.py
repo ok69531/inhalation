@@ -28,7 +28,7 @@ from sklearn.metrics import (
     accuracy_score
     )
 
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
 try:
       import wandb
