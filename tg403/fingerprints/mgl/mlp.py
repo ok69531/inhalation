@@ -62,22 +62,21 @@ def train(x, y, seed_, lr, epochs):
 def MLP_CV(x, y, params_grid, seed_):
     result_ = []
     
-    metrics = ['macro_precision', 'weighted_precision', 'macro_recall', 
-               'weighted_recall', 'macro_f1', 'weighted_f1', 
+    metrics = ['macro_precision', 'macro_recall', 'macro_f1', 
                'accuracy', 'tau']
     train_metrics = list(map(lambda x: 'train_' + x, metrics))
     val_metrics = list(map(lambda x: 'val_' + x, metrics))
     
     for params in tqdm(params_grid):
         
-        train_macro_precision_, train_weighted_precision_ = [], []
-        train_macro_recall_, train_weighted_recall_ = [], []
-        train_macro_f1_, train_weighted_f1_ = [], []
+        train_macro_precision_ =  []
+        train_macro_recall_ = []
+        train_macro_f1_ = []
         train_accuracy_, train_tau_ = [], []
 
-        val_macro_precision_, val_weighted_precision_ = [], []
-        val_macro_recall_, val_weighted_recall_ = [], []
-        val_macro_f1_, val_weighted_f1_ = [], []
+        val_macro_precision_ = []
+        val_macro_recall_ = []
+        val_macro_f1_ = []
         val_accuracy_, val_tau_ = [], []
 
 
@@ -102,20 +101,14 @@ def MLP_CV(x, y, params_grid, seed_):
             val_pred = np.argmax(model.predict(val_x), axis = 1)
             
             train_macro_precision_.append(precision_score(train_y, train_pred, average = 'macro'))
-            train_weighted_precision_.append(precision_score(train_y, train_pred, average = 'weighted'))
             train_macro_recall_.append(recall_score(train_y, train_pred, average = 'macro'))
-            train_weighted_recall_.append(recall_score(train_y, train_pred, average = 'weighted'))
             train_macro_f1_.append(f1_score(train_y, train_pred, average = 'macro'))
-            train_weighted_f1_.append(f1_score(train_y, train_pred, average = 'weighted'))
             train_accuracy_.append(accuracy_score(train_y, train_pred))
             train_tau_.append(stats.kendalltau(train_y, train_pred))
 
             val_macro_precision_.append(precision_score(val_y, val_pred, average = 'macro'))
-            val_weighted_precision_.append(precision_score(val_y, val_pred, average = 'weighted'))
             val_macro_recall_.append(recall_score(val_y, val_pred, average = 'macro'))
-            val_weighted_recall_.append(recall_score(val_y, val_pred, average = 'weighted'))
             val_macro_f1_.append(f1_score(val_y, val_pred, average = 'macro'))
-            val_weighted_f1_.append(f1_score(val_y, val_pred, average = 'weighted'))
             val_accuracy_.append(accuracy_score(val_y, val_pred))
             val_tau_.append(stats.kendalltau(val_y, val_pred))
         
@@ -123,19 +116,13 @@ def MLP_CV(x, y, params_grid, seed_):
             zip(['seed'] + list(params.keys()) + train_metrics + val_metrics, 
                 [seed_] + list(params.values()) + \
                 [np.mean(train_macro_precision_), 
-                 np.mean(train_weighted_precision_),
                  np.mean(train_macro_recall_), 
-                 np.mean(train_weighted_recall_),
                  np.mean(train_macro_f1_), 
-                 np.mean(train_weighted_f1_),
                  np.mean(train_accuracy_), 
                  np.mean(train_tau_),
                  np.mean(val_macro_precision_), 
-                 np.mean(val_weighted_precision_),
                  np.mean(val_macro_recall_), 
-                 np.mean(val_weighted_recall_),
                  np.mean(val_macro_f1_), 
-                 np.mean(val_weighted_f1_),
                  np.mean(val_accuracy_), 
                  np.mean(val_tau_)])))
         
@@ -147,6 +134,8 @@ def main(seed_):
     path = '../../data/'
 
     mgl, mgl_fingerprints, mgl_y = mgl_fing_load(path)
+    mgl_y.category.replace(range(1, 6), range(5), inplace = True)
+    
     train_mgl_fingerprints, train_mgl_y, test_mgl_fingerprints, test_mgl_y = data_split(
         mgl_fingerprints,
         mgl_y.category,
@@ -178,8 +167,8 @@ def main(seed_):
     
     
     model = train(
-        train_mgl_fingerprints, 
-        train_mgl_y, 
+        train_x, 
+        train_y, 
         int(best_params['seed']),
         best_params['learning_rate'], 
         int(best_params['epochs'])
@@ -197,7 +186,7 @@ def main(seed_):
         'parameters': best_params,
         'train_loss': train_loss, 
         'test_loss': test_loss, 
-        'precision': precision_score(test_mgl_y, mlp_pred, average = 'macro'), 
+        'precision': precision_score(test_y, mlp_pred, average = 'macro'), 
         'recall': recall_score(test_mgl_y, mlp_pred, average = 'macro'), 
         'f1': f1_score(test_mgl_y, mlp_pred, average = 'macro'), 
         'accuracy': accuracy_score(test_mgl_y, mlp_pred),

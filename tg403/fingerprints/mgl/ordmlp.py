@@ -62,8 +62,7 @@ def train(x, y, seed_, lr, epochs):
 def mgl_cv(x, y, params_grid, seed_):
     result_ = []
     
-    metrics = ['macro_precision', 'weighted_precision', 'macro_recall', 
-               'weighted_recall', 'macro_f1', 'weighted_f1', 
+    metrics = ['macro_precision', 'macro_recall', 'macro_f1',
                'accuracy', 'tau']
     train_metrics = list(map(lambda x: 'train_' + x, metrics))
     val_metrics = list(map(lambda x: 'val_' + x, metrics))
@@ -147,6 +146,8 @@ def main(seed_):
     path = '../../data/'
 
     mgl, mgl_fingerprints, mgl_y = mgl_fing_load(path)
+    mgl_y.category.replace(range(1, 6), range(5), inplace = True)
+    
     train_mgl_fingerprints, train_mgl_y, test_mgl_fingerprints, test_mgl_y = data_split(
         mgl_fingerprints,
         mgl_y.category,
