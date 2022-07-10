@@ -56,8 +56,8 @@ def main(seed_):
     #       '\n기초통계량:\n', mgl.value.describe(),
     #       '\n분위수: ', np.quantile(mgl.value, [0.2, 0.4, 0.6, 0.8, 1]))
 
-    #   print('범주에 포함된 데이터의 수\n', mgl_y.category.value_counts().sort_index(),
-    #         '\n비율\n', mgl_y.category.value_counts(normalize = True).sort_index())
+      # print('범주에 포함된 데이터의 수\n', mgl_y.category.value_counts().sort_index(),
+      #       '\n비율\n', mgl_y.category.value_counts(normalize = True).sort_index())
 
     #   print('train 범주에 포함된 데이터의 수\n', train_mgl_y.value_counts().sort_index(),
     #         '\n비율\n', train_mgl_y.value_counts(normalize = True).sort_index())
@@ -75,7 +75,7 @@ def main(seed_):
             'n_estimators': np.arange(30, 155, 10),
             'min_samples_split': list(range(2, 9)),
             'max_features': ['auto', 'sqrt', 'log2'],
-            'class_weight': [None, {0:1.3, 1:2, 2:5.3, 3:0.6, 4:0.8}]
+            'class_weight': [None, {1:1.2, 2:1.9, 3:5.6, 4:0.6, 5:0.7}]
             }
 
       params = ParameterGrid(params_dict)
