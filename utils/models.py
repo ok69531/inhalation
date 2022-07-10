@@ -56,9 +56,9 @@ class OrdinalLogitClassifier(BaseEstimator, ClassifierMixin):
         self.clfs_ = {}
         self.classes_ = np.sort(np.unique(y))
         if self.classes_.shape[0] > 2:
-            for i in range(self.classes_.shape[0]-1):
+            for i in range(1, self.classes_.shape[0]):
                 # for each k - 1 ordinal value we fit a binary classification problem
-                binary_y = (y > self.classes_[i]).astype(np.uint8)
+                binary_y = (y > self.classes_[i-1]).astype(np.uint8)
                 clf = clone(self.clf_)
                 clf.fit(X, binary_y)
                 self.clfs_[i] = clf
@@ -86,7 +86,7 @@ class OrdinalLogitClassifier(BaseEstimator, ClassifierMixin):
         X = check_array(X)
         check_is_fitted(self, ['classes_', 'clf_', 'clfs_'])
         
-        return np.argmax(self.predict_proba(X), axis=1)
+        return np.argmax(self.predict_proba(X), axis=1) + 1
 
 
 
@@ -140,9 +140,9 @@ class OrdinalRFClassifier(BaseEstimator, ClassifierMixin):
         self.clfs_ = {}
         self.classes_ = np.sort(np.unique(y))
         if self.classes_.shape[0] > 2:
-            for i in range(self.classes_.shape[0]-1):
+            for i in range(1, self.classes_.shape[0]):
                 # for each k - 1 ordinal value we fit a binary classification problem
-                binary_y = (y > self.classes_[i]).astype(np.uint8)
+                binary_y = (y > self.classes_[i-1]).astype(np.uint8)
                 clf = clone(self.clf_)
                 clf.fit(X, binary_y)
                 self.clfs_[i] = clf
@@ -170,7 +170,7 @@ class OrdinalRFClassifier(BaseEstimator, ClassifierMixin):
         X = check_array(X)
         check_is_fitted(self, ['classes_', 'clf_', 'clfs_'])
         
-        return np.argmax(self.predict_proba(X), axis=1)
+        return np.argmax(self.predict_proba(X), axis=1) + 1
 
 
 class model1(K.Model):
