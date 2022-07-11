@@ -62,8 +62,7 @@ def train(x, y, seed_, lr, epochs):
 def mgl_cv(x, y, params_grid, seed_):
     result_ = []
     
-    metrics = ['macro_precision', 'weighted_precision', 'macro_recall', 
-               'weighted_recall', 'macro_f1', 'weighted_f1', 
+    metrics = ['macro_precision', 'macro_recall', 'macro_f1', 
                'accuracy', 'tau']
     train_metrics = list(map(lambda x: 'train_' + x, metrics))
     val_metrics = list(map(lambda x: 'val_' + x, metrics))
@@ -181,14 +180,15 @@ def main(seed_):
     
     
     model = train(
-        train_ppm_fingerprints, 
-        train_ppm_y, 
+        train_x, 
+        train_y, 
         int(best_params['seed']),
         best_params['learning_rate'], 
         int(best_params['epochs'])
     )
     
-    mlp_pred_prob = model.predict(test_x)
+    
+    mlp_pred_prob = model(test_x)
     mlp_pred = np.argmax(mlp_pred_prob, axis = 1)
     
     scc = K.losses.SparseCategoricalCrossentropy()
