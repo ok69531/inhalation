@@ -95,7 +95,7 @@ def mgl_cv(x, y, params_grid, seed_):
             
             model = train(train_x, train_y, seed_, params['learning_rate'], params['epochs'])
             
-            train_pred_prob = model.predict(train_x)
+            train_pred_prob = model(train_x)
             train_pred = np.argmax(train_pred_prob, axis = 1)
             
             val_pred = np.argmax(model.predict(val_x), axis = 1)
