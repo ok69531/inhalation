@@ -40,7 +40,9 @@ warnings.filterwarnings("ignore")
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-ppm-mlp", entity="soyoung")
+wandb.init(project="tg403-time-ppm", entity="soyoung")
+wandb.run.name = 'mlp'
+wandb.run.save()
 
 
 
@@ -145,6 +147,8 @@ def main(seed_):
     path = '../../data/'
 
     ppm, ppm_fingerprints, ppm_y = ppm_fing_load(path)
+    ppm_y.category.replace(range(1, 6), range(5), inplace = True)
+    
     train_ppm_fingerprints, train_ppm_y, test_ppm_fingerprints, test_ppm_y = data_split(
         ppm_fingerprints, 
         ppm_y.category,
@@ -220,10 +224,10 @@ def main(seed_):
 
 
 result = []
-for seed_ in range(200):
+for seed_ in range(50):
       result.append(main(seed_))
       
-pd.DataFrame(result).to_csv('../../test_results/fingerprints/ppm_mlp.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/time/ppm_mlp.csv', header = True, index = False)
 wandb.finish()
 
 

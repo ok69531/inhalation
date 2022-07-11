@@ -37,7 +37,9 @@ warnings.filterwarnings("ignore")
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-ppm-rf", entity="soyoung")
+wandb.init(project="tg403-time-ppm", entity="soyoung")
+wandb.run.name = 'rf'
+wandb.run.save()
 
 
 def ppm_rf_main(seed_):
@@ -75,7 +77,7 @@ def ppm_rf_main(seed_):
         'n_estimators': np.arange(30, 155, 10),
         'min_samples_split': list(range(2, 9)),
         'max_features': ['auto', 'sqrt', 'log2'],
-        'class_weight': [None, {0:1.6, 1:1.2, 2:2.7, 3:3.4, 4:1.1}]
+        'class_weight': [None, {1:1.6, 2:1.2, 3:2.6, 4:3.2, 5:1.4}]
     }
 
     params = ParameterGrid(params_dict)
@@ -135,8 +137,8 @@ def ppm_rf_main(seed_):
 
 
 result = []
-for seed_ in range(200):
+for seed_ in range(50):
     result.append(ppm_rf_main(seed_))
       
-pd.DataFrame(result).to_csv('../../test_results/fingerprints/ppm_rf.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/time/ppm_rf.csv', header = True, index = False)
 wandb.finish()

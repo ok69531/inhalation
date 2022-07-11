@@ -36,7 +36,9 @@ warnings.filterwarnings("ignore")
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-ppm-ordrf", entity="soyoung")
+wandb.init(project="tg403-time-ppm", entity="soyoung")
+wandb.run.name = 'ordrf'
+wandb.run.save()
 
 
 def ppm_ordrf_main(seed_):
@@ -133,8 +135,8 @@ def ppm_ordrf_main(seed_):
 
 
 result = []
-for seed_ in range(200):
+for seed_ in range(50):
     result.append(ppm_ordrf_main(seed_))
       
-pd.DataFrame(result).to_csv('../../test_results/fingerprints/ppm_ordrf.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/time/ppm_ordrf.csv', header = True, index = False)
 wandb.finish()

@@ -40,8 +40,9 @@ except:
 
 
 wandb.login(key="1c2f31977d15e796871c32701e62c5ec1167070e")
-wandb.init(project="LC50-ppm-logistic", entity="soyoung")
-
+wandb.init(project="tg403-time-ppm", entity="soyoung")
+wandb.run.name = 'logistic'
+wandb.run.save()
     
 
 def ppm_logit_main(seed_):
@@ -76,7 +77,7 @@ def ppm_logit_main(seed_):
     params_dict = {
         'random_state': [seed_], 
         'penalty': ['l1', 'l2'],
-        'C': np.linspace(1e-6, 50, 150),
+        'C': np.linspace(1e-6, 50, 100),
         'solver': ['liblinear', 'saga']
     }
 
@@ -122,8 +123,8 @@ def ppm_logit_main(seed_):
 
 
 result = []
-for seed_ in range(200):
+for seed_ in range(50):
       result.append(ppm_logit_main(seed_))
       
-pd.DataFrame(result).to_csv('../../test_results/fingerprints/ppm_logit.csv', header = True, index = False)
+pd.DataFrame(result).to_csv('../../test_results/time/ppm_logit.csv', header = True, index = False)
 wandb.finish()
