@@ -316,14 +316,14 @@ def BinaryCV(x, y, model, params_grid):
             train_macro_precision_.append(precision_score(train_y, train_pred))
             train_macro_recall_.append(recall_score(train_y, train_pred))
             train_macro_f1_.append(f1_score(train_y, train_pred))
-            train_accuracy_.append(accuracy_score(train_y, train_pred_prob))
-            train_auc_.append(roc_auc_score(train_y, train_pred))
+            train_accuracy_.append(accuracy_score(train_y, train_pred))
+            train_auc_.append(roc_auc_score(train_y, train_pred_prob))
 
             val_macro_precision_.append(precision_score(val_y, val_pred))
             val_macro_recall_.append(recall_score(val_y, val_pred))
             val_macro_f1_.append(f1_score(val_y, val_pred))
-            val_accuracy_.append(accuracy_score(val_y, val_pred_prob))
-            val_auc_.append(roc_auc_score(val_y, val_pred))
+            val_accuracy_.append(accuracy_score(val_y, val_pred))
+            val_auc_.append(roc_auc_score(val_y, val_pred_prob))
             
         result_.append(dict(
             zip(list(params_grid[i].keys()) + train_metrics + val_metrics, 
