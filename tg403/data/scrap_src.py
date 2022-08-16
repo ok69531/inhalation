@@ -1,7 +1,10 @@
 #%%
 import os
 import re
+import sys
 import time
+import json
+
 import numpy as np
 import pandas as pd
 from pandas.core.indexes.base import Index
@@ -47,48 +50,48 @@ driver.get(url)
 deselect_path = '//*[@id="datasources-panel-1"]/div/div/div/a[2]'
 deselect = driver.find_element_by_xpath(deselect_path)
 deselect.click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 echa_path = '//*[@id="datasources-panel-1"]/div/echem-search-sources/div/div/div/div[2]/echem-checkbox/div'
 echa = driver.find_element_by_xpath(echa_path)
 echa.click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 query_path = '//*[@id="property_query-builder-panel-1"]/div/echem-property-query-panel/div[2]/div[1]/echem-query-builder/div[2]/div/button'
 driver.find_element_by_xpath(query_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 tox_button_path = '//*[@id="QU.SE.7-toxicological-information-header"]/div/div[1]/button'
 driver.find_element_by_xpath(tox_button_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 acute_path = '//*[@id="QU.SE.7.2-acute-toxicity-header"]/div/div[2]/button'
 driver.find_element_by_xpath(acute_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 inhalation_path = '//*[@id="QU.SE.7.2-acute-toxicity"]/div/div/div[2]/div[3]/button'
 driver.find_element_by_xpath(inhalation_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 info_type_path = '//*[@id="property_query-builder-panel-1"]/div/echem-property-query-panel/div[2]/div[3]/echem-property-form/form/echem-property-phrase-field[1]/div/div/div/ng-select/div/div'
 driver.find_element_by_xpath(info_type_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 experiment_path = '/html/body/ng-dropdown-panel/div[2]/div[2]/div[3]'
 driver.find_element_by_xpath(experiment_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 tg_path = '//*[@id="property_query-builder-panel-1"]/div/echem-property-query-panel/div[2]/div[3]/echem-property-form/form/echem-property-phrase-field[4]/div/div/div/ng-select/div/div'
 driver.find_element_by_xpath(tg_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 tg403_path = '/html/body/ng-dropdown-panel/div[2]/div[2]/div[7]'
 driver.find_element_by_xpath(tg403_path).click()
-time.sleep(0.1)
+time.sleep(0.5)
 
 save_path = '/html/body/echem-root/div/echem-substance-search-page/echem-substance-search-container/echem-substance-search/form/div/ngb-accordion[1]/div[2]/div[2]/div/echem-property-query-panel/div[2]/div[3]/echem-property-form/form/div/button[2]'
 driver.find_element_by_xpath(save_path).click()
-time.sleep(0.3)
+time.sleep(0.5)
 
 search_path = '/html/body/echem-root/div/echem-substance-search-page/echem-substance-search-container/echem-substance-search/form/div/div[2]/div/button'
 driver.find_element_by_xpath(search_path).click()
@@ -129,8 +132,8 @@ for p in range(page_num):
         
         try:
             src = driver.page_source
-            soup = BeautifulSoup(src, 'html.parser')
-            src_dict['src'] = soup
+            # soup = BeautifulSoup(src, 'html.parser')
+            src_dict['src'] = src
             
             result_.append(src_dict)
         
@@ -196,6 +199,4 @@ print(time.time() - start)
 
         
 #%%
-result = pd.DataFrame(result_)
-
-result.to_excel('tg403_page_src.xlsx', header=  True, index = False)
+json.dump(result_, open('page_src/tg403_page_src.json', 'w'))
