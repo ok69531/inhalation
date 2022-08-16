@@ -13,4 +13,4 @@ wandb
 SLURM*
 .sh
 .neptune
-tg403_page_src.xlsx
+tg403_page_src.json
