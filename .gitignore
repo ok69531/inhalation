@@ -12,5 +12,3 @@ __pycache__/
 wandb
 SLURM*
 .sh
-.neptune
-tg403_page_src.json
