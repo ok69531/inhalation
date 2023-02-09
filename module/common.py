@@ -76,7 +76,7 @@ def cross_validation(model, x, y, seed):
         val_x, val_y = x.iloc[val_idx], y.iloc[val_idx]
         
         
-        if model == sklearn.cross_decomposition._pls.PLSRegression:
+        if type(model) == sklearn.cross_decomposition._pls.PLSRegression:
             onehot_train_y = pd.get_dummies(train_y)
             
             model.fit(train_x, onehot_train_y)
