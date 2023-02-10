@@ -23,7 +23,7 @@ from module.get_model import (
 )
 from module.common import (
     data_split, 
-    cross_validation,
+    multiclass_cross_validation,
     print_best_param
 )
 
@@ -63,7 +63,7 @@ def main():
             
             model = load_model(model = args.model, seed = seed, param = params[p])
             
-            cv_result = cross_validation(model, x_train, y_train, seed)
+            cv_result = multiclass_cross_validation(model, x_train, y_train, seed)
             
             result['precision']['model'+str(p)].append(cv_result['val_precision'])
             result['recall']['model'+str(p)].append(cv_result['val_recall'])
@@ -73,7 +73,7 @@ def main():
     json.dump(result, open(f'tg{args.tg_num}_val_results/multiclass/{args.inhale_type}_{args.model}.json', 'w'))
     
     
-    best_param = print_best_param(val_result = result, metric = 'f1')
+    best_param = print_best_param(val_result = result, metric = args.metric)
     precision, recall, accuracy, f1 = [], [], [], []
     
     # test reulst
