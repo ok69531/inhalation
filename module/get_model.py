@@ -92,13 +92,13 @@ def load_hyperparameter(model: str):
         'min_child_weight': [1, 2, 3, 5],
             'max_depth': [3, 6, 9],
             'gamma': np.linspace(0, 3, 10),
-            'objective': ['multi:softmax'],
+            # 'objective': ['multi:softmax'],
             'booster': ['gbtree']
         }
     
     elif model == 'lgb':
         params_dict = {
-            'objective': ['multiclass'],
+            # 'objective': ['multiclass'],
             'num_leaves': [15, 21, 27, 31, 33],
             'max_depth': [-1, 2],
             'n_estimators': [5, 10, 50, 100, 130],
