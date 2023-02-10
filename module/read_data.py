@@ -13,3 +13,13 @@ def load_data(path: str, tg_num: int, inhale_type: str):
     y = df.category.drop(drop_idx).reset_index(drop = True)
     
     return fingerprints, y
+
+
+def multiclass2binary(y, tg_num: int):
+    if tg_num == 403:
+        y = y.where(y>=2, 0).where(y<2, 1)
+    
+    else:
+        y = y.where(y>=1, 0).where(y<1, 1)
+    
+    return y
