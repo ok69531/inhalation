@@ -97,7 +97,7 @@ def main():
             pred = np.where(pred_score < 0.5, 0, 1).reshape(-1)
         else:
             pred = model.predict(x_test)
-            pred_score = model.predict_proba(x_test)
+            pred_score = model.predict_proba(x_test)[:, 1]
         
         precision.append(precision_score(y_test, pred))
         recall.append(recall_score(y_test, pred))
