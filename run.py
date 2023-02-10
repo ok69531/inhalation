@@ -70,7 +70,7 @@ def main():
             result['f1']['model'+str(p)].append(cv_result['val_f1'])
             result['accuracy']['model'+str(p)].append(cv_result['val_accuracy'])
 
-    json.dump(result, open(f'tg{args.tg_num}_val_results/{args.inhale_type}_logistic.json', 'w'))
+    json.dump(result, open(f'tg{args.tg_num}_val_results/{args.inhale_type}_{args.model}.json', 'w'))
     
     
     best_param = print_best_param(val_result = result, metric = 'f1')
