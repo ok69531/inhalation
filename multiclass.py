@@ -3,7 +3,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from scipy.stats import sem
 
 from tqdm import tqdm
 
@@ -98,10 +97,10 @@ def main():
         
     print(f'================================= \
           \ntg{args.tg_num} {args.inhale_type} {args.model} \
-          \nprecision: {np.mean(precision):.3f}({sem(precision):.3f}) \
-          \nrecall: {np.mean(recall):.3f}({sem(recall):.3f}) \
-          \naccuracy: {np.mean(accuracy):.3f}({sem(accuracy):.3f}) \
-          \nf1: {np.mean(f1):.3f}({sem(f1):.3f})')
+          \nprecision: {np.mean(precision):.3f}({np.std(precision):.3f}) \
+          \nrecall: {np.mean(recall):.3f}({np.std(recall):.3f}) \
+          \naccuracy: {np.mean(accuracy):.3f}({np.std(accuracy):.3f}) \
+          \nf1: {np.mean(f1):.3f}({np.std(f1):.3f})')
 
 
 if __name__ == '__main__':
