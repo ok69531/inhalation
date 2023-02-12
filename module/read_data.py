@@ -23,3 +23,19 @@ def multiclass2binary(y, tg_num: int):
         y = y.where(y>=1, 0).where(y<1, 1)
     
     return y
+
+
+def load_pred_data():
+    df_tmp = pd.read_excel('pred_data.xlsx')
+    
+    # try:
+    #     df = pd.read_excel(f'{path}/pred_data.xlsx')
+    # except: 
+    #     df = pd.read_excel(f'{path}pred_data.xlsx')
+    
+    df = df_tmp[df_tmp['SMILES'].notna()].reset_index(drop = True)
+    
+    drop_idx, fingerprints = smiles2fing(df.SMILES)
+    df = df.drop(drop_idx).reset_index(drop = True)
+    
+    return fingerprints, df, df_tmp
