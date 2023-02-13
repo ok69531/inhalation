@@ -26,7 +26,7 @@ def multiclass2binary(y, tg_num: int):
         bin_y[y<1] = 1
         bin_y[y>=1] = 0
     
-    return y
+    return bin_y
 
 
 def load_pred_data():
