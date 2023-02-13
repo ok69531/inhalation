@@ -44,7 +44,7 @@ def main():
     elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
         args.model = 'lgb'
     elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
-        args.model = 'plsda'
+        args.model = 'dt'
     elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
         args.model = 'dt'
     
