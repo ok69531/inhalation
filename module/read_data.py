@@ -16,11 +16,15 @@ def load_data(path: str, tg_num: int, inhale_type: str):
 
 
 def multiclass2binary(y, tg_num: int):
+    bin_y = y.copy()
+    
     if tg_num == 403:
-        y = y.where(y>=2, 0).where(y<2, 1)
+        bin_y[y<2] = 1
+        bin_y[y>=2] = 0
     
     else:
-        y = y.where(y>=1, 0).where(y<1, 1)
+        bin_y[y<1] = 1
+        bin_y[y>=1] = 0
     
     return y
 
