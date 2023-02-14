@@ -36,17 +36,17 @@ def main():
     fingerprints, pred_df, pred_df_origin = load_pred_data()
     
     if (args.tg_num == 403) & (args.inhale_type == 'vapour'):
-        args.model = 'lgb'
+        args.model = 'lda'
     elif (args.tg_num == 403) & (args.inhale_type == 'aerosol'):
-        args.model = 'dt'
+        args.model = 'lgb'
     elif (args.tg_num == 412) & (args.inhale_type == 'vapour'):
-        args.model = 'mlp'
+        args.model = 'lda'
     elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
         args.model = 'lgb'
     elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
-        args.model = 'dt'
+        args.model = 'qda'
     elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
-        args.model = 'dt'
+        args.model = 'plsda'
     
     val_result = load_val_result(path = '../', tg_num = args.tg_num, inhale_type = args.inhale_type, model = args.model)
     best_param = print_best_param(val_result, args.metric)
