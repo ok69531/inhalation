@@ -2,8 +2,8 @@ import json
 import warnings
 
 import numpy as np
-
 from tqdm import tqdm
+from imblearn.over_sampling import SMOTE
 
 from sklearn.metrics import (
     precision_score,
@@ -85,6 +85,8 @@ def main():
     # test reulst
     for seed in range(args.num_run):
         x_train, x_test, y_train, y_test = data_split(x, y, seed)
+        smote = SMOTE(random_state = seed, k_neighbors = args.neighbor)
+        x_train, y_train = smote.fit_resample(x_train, y_train)
         
         model = load_model(model = args.model, seed = seed, param = best_param)
         
