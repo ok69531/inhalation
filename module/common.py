@@ -21,6 +21,8 @@ from sklearn.metrics import (
 )
 from sklearn.cross_decomposition import PLSRegression
 
+from imblearn.over_sampling import SMOTE
+
 
 def data_split(X, y, seed):
     sss = StratifiedShuffleSplit(n_splits = 1, test_size = 0.2, random_state = seed)
@@ -130,6 +132,70 @@ def binary_cross_validation(model, x, y, seed):
     for train_idx, val_idx in skf.split(x, y):
         train_x, train_y = x.iloc[train_idx], y.iloc[train_idx]
         val_x, val_y = x.iloc[val_idx], y.iloc[val_idx]
+        
+        if type(model) == sklearn.cross_decomposition._pls.PLSRegression:
+            model.fit(train_x, train_y)
+            
+            train_pred_score = model.predict(train_x)
+            train_pred = np.where(train_pred_score < 0.5, 0, 1).reshape(-1)
+            
+            val_pred_score = model.predict(val_x)
+            val_pred = np.where(val_pred_score < 0.5, 0, 1).reshape(-1)
+            
+        else:
+            model.fit(train_x, train_y)
+            
+            train_pred = model.predict(train_x)
+            train_pred_score = model.predict_proba(train_x)[:, 1]
+            
+            val_pred = model.predict(val_x)
+            val_pred_score = model.predict_proba(val_x)[:, 1]
+        
+        train_precision.append(precision_score(train_y, train_pred))
+        train_recall.append(recall_score(train_y, train_pred))
+        train_f1.append(f1_score(train_y, train_pred))
+        train_accuracy.append(accuracy_score(train_y, train_pred))
+        train_auc.append(roc_auc_score(train_y, train_pred_score))
+
+        val_precision.append(precision_score(val_y, val_pred))
+        val_recall.append(recall_score(val_y, val_pred))
+        val_f1.append(f1_score(val_y, val_pred))
+        val_accuracy.append(accuracy_score(val_y, val_pred))
+        val_auc.append(roc_auc_score(val_y, val_pred_score))
+
+    result = dict(zip(train_metrics + val_metrics, 
+                      [np.mean(train_precision), np.mean(train_recall), np.mean(train_f1), np.mean(train_accuracy), np.mean(train_auc), 
+                       np.mean(val_precision), np.mean(val_recall), np.mean(val_f1), np.mean(val_accuracy), np.mean(val_auc)]))
+    
+    return(result)
+
+
+def binary_smote_cross_validation(model, x, y, seed):
+    skf = StratifiedKFold(n_splits = 5, shuffle = True, random_state = seed)
+    
+    metrics = ['precision', 'recall', 'f1', 'accuracy', 'auc']
+    
+    train_metrics = list(map(lambda x: 'train_' + x, metrics))
+    val_metrics = list(map(lambda x: 'val_' + x, metrics))
+    
+    train_precision = []
+    train_recall = []
+    train_f1 = []
+    train_accuracy = []
+    train_auc = []
+    
+    val_precision = []
+    val_recall = []
+    val_f1 = []
+    val_accuracy = []
+    val_auc = []
+    
+    for train_idx, val_idx in skf.split(x, y):
+        train_x, train_y = x.iloc[train_idx], y.iloc[train_idx]
+        val_x, val_y = x.iloc[val_idx], y.iloc[val_idx]
+        
+        smote = SMOTE(random_state = seed)
+        train_x, train_y = smote.fit_resample(train_x, train_y)
         
         if type(model) == sklearn.cross_decomposition._pls.PLSRegression:
             model.fit(train_x, train_y)
