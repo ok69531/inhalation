@@ -2,8 +2,8 @@ import json
 import warnings
 
 import numpy as np
-
 from tqdm import tqdm
+from imblearn.over_sampling import SMOTE
 
 from sklearn.metrics import (
     precision_score,
@@ -68,7 +68,7 @@ def main():
             
             model = load_model(model = args.model, seed = seed, param = params[p])
             
-            cv_result = binary_cross_validation(model, x_train, y_train, seed)
+            cv_result = binary_cross_validation(model, x_train, y_train, seed, args.neighbor)
             
             result['precision']['model'+str(p)].append(cv_result['val_precision'])
             result['recall']['model'+str(p)].append(cv_result['val_recall'])
@@ -85,6 +85,7 @@ def main():
     # test reulst
     for seed in range(args.num_run):
         x_train, x_test, y_train, y_test = data_split(x, y, seed)
+        smote = SMOTE(random_state = seed, k_neighbors = args.neighbor)
         
         model = load_model(model = args.model, seed = seed, param = best_param)
         
