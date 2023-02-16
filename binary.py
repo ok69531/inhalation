@@ -67,7 +67,7 @@ def main():
             
             model = load_model(model = args.model, seed = seed, param = params[p])
             
-            cv_result = binary_cross_validation(model, x_train, y_train, seed, args.neighbor)
+            cv_result = binary_cross_validation(model, x_train, y_train, seed)
             
             result['precision']['model'+str(p)].append(cv_result['val_precision'])
             result['recall']['model'+str(p)].append(cv_result['val_recall'])
