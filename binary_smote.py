@@ -76,7 +76,7 @@ def main():
             result['accuracy']['model'+str(p)].append(cv_result['val_accuracy'])
             result['auc']['model'+str(p)].append(cv_result['val_auc'])
 
-    json.dump(result, open(f'tg{args.tg_num}_val_results/binary_smote/{args.inhale_type}_{args.model}.json', 'w'))
+    json.dump(result, open(f'tg{args.tg_num}_val_results/binary_smote{args.neighbor}/{args.inhale_type}_{args.model}.json', 'w'))
     
     
     best_param = print_best_param(val_result = result, metric = args.metric)
