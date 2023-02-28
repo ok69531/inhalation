@@ -2,6 +2,7 @@ import sys
 sys.path.append('../')
 
 import warnings
+from rdkit import RDLogger 
 
 import numpy as np
 import pandas as pd
@@ -21,6 +22,7 @@ from module.common import (
 
 
 warnings.filterwarnings('ignore')
+RDLogger.DisableLog('rdApp.*')
 
 
 def main():
@@ -57,12 +59,12 @@ def main():
     
     if args.model == 'plsda':
         pred_score = model.predict(fingerprints)
-        pred = np.where(pred_score < 0.5, 0, 1).reshape(-1)
+        # pred = np.where(pred_score < 0.5, 0, 1).reshape(-1)
     else:
-        pred = model.predict(fingerprints)
+        pred_score = model.predict_proba(fingerprints)[:, 1]
     
-    pred_df['pred'] = pred
-    result = pd.merge(pred_df_origin, pred_df[['No', 'CasRN', 'Chemical name', 'pred']], how = 'left', on = ('No', 'CasRN', 'Chemical name'))
+    pred_df['pred'] = pred_score
+    result = pd.merge(pred_df_origin, pred_df[['PREFERRED_NAME', 'SMILES', 'pred']], how = 'left', on = ('PREFERRED_NAME', 'SMILES'))
     result.to_excel(f'pred_result/tg{args.tg_num}_{args.inhale_type}_{args.model}.xlsx', header = True, index = False)
 
 

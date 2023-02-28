@@ -9,5 +9,6 @@ def get_parser():
     parser.add_argument('--metric', type = str, default = 'f1', help = 'precision, recall, accuracy, f1, auc(only binary)')
     parser.add_argument('--num_run', type = int, default = 10, help = 'the number of run')
     parser.add_argument('--neighbor', type = int, default = 5, help = 'the number of neighbors for SMOTE')
+    parser.add_argument('--threshold', type = float, default = .5)
     
     return parser

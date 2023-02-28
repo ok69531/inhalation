@@ -30,7 +30,7 @@ def multiclass2binary(y, tg_num: int):
 
 
 def load_pred_data():
-    df_tmp = pd.read_excel('pred_data.xlsx')
+    df_tmp = pd.read_excel('pred_data.xlsx').drop_duplicates(subset = ('PREFERRED_NAME', 'SMILES'))
     
     # try:
     #     df = pd.read_excel(f'{path}/pred_data.xlsx')

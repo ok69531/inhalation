@@ -320,7 +320,7 @@ def load_val_result(path: str, tg_num: int, inhale_type: str, model: str):
         with open(f'{path}/tg{tg_num}_val_results/binary/{inhale_type}_{model}.json', 'r') as file:
             val_result = json.load(file)
     except:
-        with open(f'{path}tg{tg_num}/val_results/binary/{inhale_type}_{model}.json', 'r') as file:
+        with open(f'{path}tg{tg_num}_val_results/binary/{inhale_type}_{model}.json', 'r') as file:
             val_result = json.load(file)
     
     return val_result
