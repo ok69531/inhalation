@@ -170,7 +170,7 @@ def binary_cross_validation(model, x, y, seed):
     return(result)
 
 
-def binary_smote_cross_validation(model, x, y, seed, neighbor):
+def binary_smote_cross_validation(model, x, y, seed, args):
     skf = StratifiedKFold(n_splits = 5, shuffle = True, random_state = seed)
     
     metrics = ['precision', 'recall', 'f1', 'accuracy', 'auc']
@@ -194,7 +194,7 @@ def binary_smote_cross_validation(model, x, y, seed, neighbor):
         train_x, train_y = x.iloc[train_idx], y.iloc[train_idx]
         val_x, val_y = x.iloc[val_idx], y.iloc[val_idx]
         
-        smote = SMOTE(random_state = seed, k_neighbors = neighbor)
+        smote = SMOTE(k_neighbors = args.neighbor)
         train_x, train_y = smote.fit_resample(train_x, train_y)
         
         if type(model) == sklearn.cross_decomposition._pls.PLSRegression:

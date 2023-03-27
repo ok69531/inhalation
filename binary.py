@@ -41,6 +41,8 @@ def main():
 
     x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type)
     y = multiclass2binary(y, args.tg_num)
+    
+    x_train, x_test, y_train, y_test = data_split(x, y, args.splitseed)
 
     # cross validation
     params = load_hyperparameter(args.model)
@@ -63,8 +65,6 @@ def main():
         result['auc']['model'+str(p)] = []
         
         for seed in range(args.num_run):
-            x_train, x_test, y_train, y_test = data_split(x, y, seed)
-            
             model = load_model(model = args.model, seed = seed, param = params[p])
             
             cv_result = binary_cross_validation(model, x_train, y_train, seed)
@@ -79,12 +79,12 @@ def main():
     
     
     best_param = print_best_param(val_result = result, metric = args.metric)
+    print(best_param)
+    
     precision, recall, accuracy, f1, auc = [], [], [], [], []
     
     # test reulst
     for seed in range(args.num_run):
-        x_train, x_test, y_train, y_test = data_split(x, y, seed)
-        
         model = load_model(model = args.model, seed = seed, param = best_param)
         
         model.fit(x_train, y_train)
