@@ -39,6 +39,9 @@ def main():
     except:
         args = parser.parse_args([])
 
+    print('=================================')
+    print('tg%s %s %s' % (args.tg_num, args.inhale_type, args.model))
+    
     x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type)
     y = multiclass2binary(y, args.tg_num)
     
@@ -77,38 +80,44 @@ def main():
 
     json.dump(result, open(f'tg{args.tg_num}_val_results/binary/{args.inhale_type}_{args.model}.json', 'w'))
     
-    
     best_param = print_best_param(val_result = result, metric = args.metric)
     
-    precision, recall, accuracy, f1, auc = [], [], [], [], []
+    m = list(result['model'].keys())[list(result['model'].values()).index(best_param)]
     
-    # test reulst
-    for seed in range(args.num_run):
-        model = load_model(model = args.model, seed = seed, param = best_param)
-        
-        model.fit(x_train, y_train)
-        
-        if args.model == 'plsda':
-            pred_score = model.predict(x_test)
-            pred = np.where(pred_score < 0.5, 0, 1).reshape(-1)
-        else:
-            pred = model.predict(x_test)
-            pred_score = model.predict_proba(x_test)[:, 1]
-        
-        precision.append(precision_score(y_test, pred))
-        recall.append(recall_score(y_test, pred))
-        accuracy.append(accuracy_score(y_test, pred))
-        auc.append(roc_auc_score(y_test, pred_score))
-        f1.append(f1_score(y_test, pred))
-        
-    print(f'================================= \
-          \ntg{args.tg_num} {args.inhale_type} {args.model} \
-          \nbest param: {best_param} \
+    # val result
+    precision = result['precision'][m]
+    recall = result['recall'][m]
+    acc = result['accuracy'][m]
+    auc = result['auc'][m]
+    f1 = result['f1'][m]
+    
+    print(f"best param: {best_param} \
+          \nvalidation result \
           \nprecision: {np.mean(precision):.3f}({np.std(precision):.3f}) \
           \nrecall: {np.mean(recall):.3f}({np.std(recall):.3f}) \
-          \naccuracy: {np.mean(accuracy):.3f}({np.std(accuracy):.3f}) \
+          \naccuracy: {np.mean(acc):.3f}({np.std(acc):.3f}) \
           \nauc: {np.mean(auc):.3f}({np.std(auc):.3f}) \
-          \nf1: {np.mean(f1):.3f}({np.std(f1):.3f})')
+          \nf1: {np.mean(f1):.3f}({np.std(f1):.3f})")
+    
+    # test reulst
+    model = load_model(model = args.model, seed = seed, param = best_param)
+    
+    model.fit(x_train, y_train)
+    
+    if args.model == 'plsda':
+        pred_score = model.predict(x_test)
+        pred = np.where(pred_score < 0.5, 0, 1).reshape(-1)
+    else:
+        pred = model.predict(x_test)
+        pred_score = model.predict_proba(x_test)[:, 1]
+        
+    print(f'test result \
+          \nbest param: {best_param} \
+          \nprecision: {precision_score(y_test, pred):.3f} \
+          \nrecall: {recall_score(y_test, pred):.3f} \
+          \naccuracy: {accuracy_score(y_test, pred):.3f} \
+          \nauc: {roc_auc_score(y_test, pred_score):.3f} \
+          \nf1: {f1_score(y_test, pred):.3f}')
 
 
 if __name__ == '__main__':
