@@ -194,7 +194,7 @@ def binary_smote_cross_validation(model, x, y, seed, args):
         train_x, train_y = x.iloc[train_idx], y.iloc[train_idx]
         val_x, val_y = x.iloc[val_idx], y.iloc[val_idx]
         
-        smote = SMOTE(k_neighbors = args.neighbor)
+        smote = SMOTE(random_state = args.smoteseed, k_neighbors = args.neighbor)
         train_x, train_y = smote.fit_resample(train_x, train_y)
         
         if type(model) == sklearn.cross_decomposition._pls.PLSRegression:

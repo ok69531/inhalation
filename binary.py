@@ -79,7 +79,6 @@ def main():
     
     
     best_param = print_best_param(val_result = result, metric = args.metric)
-    print(best_param)
     
     precision, recall, accuracy, f1, auc = [], [], [], [], []
     
@@ -104,6 +103,7 @@ def main():
         
     print(f'================================= \
           \ntg{args.tg_num} {args.inhale_type} {args.model} \
+          \nbest param: {best_param} \
           \nprecision: {np.mean(precision):.3f}({np.std(precision):.3f}) \
           \nrecall: {np.mean(recall):.3f}({np.std(recall):.3f}) \
           \naccuracy: {np.mean(accuracy):.3f}({np.std(accuracy):.3f}) \
