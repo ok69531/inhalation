@@ -6,6 +6,7 @@ from rdkit import RDLogger
 
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
 
 from module.argument import get_parser
 from module.read_data import (
@@ -38,22 +39,27 @@ def main():
     fingerprints, pred_df, pred_df_origin = load_pred_data()
     
     if (args.tg_num == 403) & (args.inhale_type == 'vapour'):
-        args.model = 'lda'
+        args.model = 'lgb'
     elif (args.tg_num == 403) & (args.inhale_type == 'aerosol'):
-        args.model = 'lgb'
+        args.model = 'rf'
     elif (args.tg_num == 412) & (args.inhale_type == 'vapour'):
-        args.model = 'lda'
+        args.model = 'mlp'
     elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
-        args.model = 'lgb'
-    elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
         args.model = 'qda'
+        args.smoteseed = 0
+    elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
+        args.model = 'lda'
+        args.smoteseed = 119
     elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
-        args.model = 'plsda'
+        args.model = 'mlp'
     
-    val_result = load_val_result(path = '../', tg_num = args.tg_num, inhale_type = args.inhale_type, model = args.model)
+    val_result = load_val_result(path = '../', tg_num = args.tg_num, inhale_type = args.inhale_type, model = args.model, is_smote = True)
     best_param = print_best_param(val_result, args.metric)
     
     model = load_model(model = args.model, seed = 0, param = best_param)
+    
+    smote = SMOTE(random_state = args.smoteseed, k_neighbors = args.neighbor)
+    x, y = smote.fit_resample(x, y)
     
     model.fit(x, y)
     
