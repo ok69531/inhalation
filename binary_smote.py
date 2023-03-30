@@ -49,7 +49,7 @@ def main():
     x_train, x_test, y_train, y_test = data_split(x, y, args.splitseed)
 
     # cross validation
-    params = load_hyperparameter(args.model)[:2]
+    params = load_hyperparameter(args.model)
 
     result = {}
     result['model'] = {}
