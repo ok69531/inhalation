@@ -106,10 +106,10 @@ def main():
     
     print(f'test result \
           \nbest param: {best_param} \
-          \nprecision: {precision_score(y_test, pred):.3f} \
-          \nrecall: {recall_score(y_test, pred):.3f} \
+          \nprecision: {precision_score(y_test, pred, average = "macro"):.3f} \
+          \nrecall: {recall_score(y_test, pred, average = "macro"):.3f} \
           \naccuracy: {accuracy_score(y_test, pred):.3f} \
-          \nf1: {f1_score(y_test, pred):.3f}')
+          \nf1: {f1_score(y_test, pred, average = "macro"):.3f}')
 
 
 if __name__ == '__main__':
