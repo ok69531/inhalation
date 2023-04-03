@@ -37,6 +37,9 @@ def main():
     except:
         args = parser.parse_args([])
 
+    print('=================================')
+    print('Multiclass tg%s %s %s' % (args.tg_num, args.inhale_type, args.model))
+    
     x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type)
     
     x_train, x_test, y_train, y_test = data_split(x, y, args.splitseed)
