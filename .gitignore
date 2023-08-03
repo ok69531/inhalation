@@ -14,3 +14,4 @@ SLURM*
 *.sh
 recon.py
 dup.py
+additional
