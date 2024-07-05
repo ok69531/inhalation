@@ -12,6 +12,5 @@ __pycache__/
 wandb
 SLURM*
 *.sh
-recon.py
-dup.py
 additional
+tmp.py
