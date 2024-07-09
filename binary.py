@@ -112,11 +112,11 @@ def main():
     
     logging.info("best param: {}".format(best_param))
     logging.info("validation result")
-    logging.info("precision: {:.3f}{:.3f}".format(np.mean(precision), np.std(precision)))
-    logging.info("recall: {:.3f}{:.3f}".format(np.mean(recall), np.std(recall)))
-    logging.info("accuracy: {:.3f}{:.3f}".format(np.mean(acc), np.std(acc)))
-    logging.info("auc: {:.3f}{:.3f}".format(np.mean(auc), np.std(auc)))
-    logging.info("f1: {:.3f}{:.3f}".format(np.mean(f1), np.std(f1)))
+    logging.info("precision: {:.3f}({:.3f})".format(np.mean(precision), np.std(precision)))
+    logging.info("recall: {:.3f}({:.3f})".format(np.mean(recall), np.std(recall)))
+    logging.info("accuracy: {:.3f}({:.3f})".format(np.mean(acc), np.std(acc)))
+    logging.info("auc: {:.3f}({:.3f})".format(np.mean(auc), np.std(auc)))
+    logging.info("f1: {:.3f}({:.3f})".format(np.mean(f1), np.std(f1)))
     
     # test reulst
     model = load_model(model = args.model, seed = seed, param = best_param)
