@@ -4,6 +4,7 @@ import logging
 import warnings
 
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 from imblearn.over_sampling import SMOTE
 
@@ -35,7 +36,6 @@ from module.common import (
 
 
 warnings.filterwarnings('ignore')
-warnings.filterwarnings("ignore", category=DeprecationWarning) 
 logging.basicConfig(format='', level=logging.INFO)
 
 
