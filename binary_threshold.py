@@ -43,7 +43,7 @@ def main():
     for c in tqdm(comb):
         tg_num, inhale_type, model_name, thres = c
         
-        x, y = load_data(path = 'data', args)
+        x, y = load_data(path = 'data', args = args)
         y = multiclass2binary(y, tg_num)
     
         result = load_val_result('', tg_num, inhale_type, model_name)

@@ -48,7 +48,7 @@ def main():
     logging.info('tg{} {} {}'.format(args.tg_num, args.inhale_type, args.model))
     logging.info('Fingerprints: {}, Use Descriptors: {}'.format(args.fp_type, args.add_md))
 
-    x, y = load_data(path = 'data', args)
+    x, y = load_data(path = 'data', args = args)
     if args.cat3tohigh:
         y = new_multiclass2binary(y, args.tg_num)
     else:

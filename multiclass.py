@@ -40,7 +40,7 @@ def main():
     print('=================================')
     print('Multiclass tg%s %s %s' % (args.tg_num, args.inhale_type, args.model))
     
-    x, y = load_data(path = 'data', args)
+    x, y = load_data(path = 'data', args = args)
     
     x_train, x_test, y_train, y_test = data_split(x, y, args.splitseed)
 
