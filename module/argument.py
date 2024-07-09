@@ -13,5 +13,7 @@ def get_parser():
     parser.add_argument('--neighbor', type = int, default = 5, help = 'the number of neighbors for SMOTE')
     parser.add_argument('--threshold', type = float, default = .5)
     parser.add_argument('--cat3tohigh', type = bool, default = False)
+    parser.add_argument('--fp_type', type = str, default = 'maccs', help = 'maccs, morgan, topo, rdkit, toxprint')
+    parser.add_argument('--add_md', type = bool, default = False, help = 'whether add molecular descriptors or not')
     
     return parser

@@ -85,14 +85,14 @@ def main():
             result['auc']['model'+str(p)].append(cv_result['val_auc'])
 
     if args.cat3tohigh:
-        save_path = f'tg{args.tg_num}_cat3high_val_results/binary'
+        save_path = f'tg{args.tg_num}_cat3high_val_results/binary/{args.fp_type}_md{args.add_md}'
         if os.path.isdir(save_path):
             pass
         else:
             os.makedirs(save_path)
         json.dump(result, open(f'{save_path}/{args.inhale_type}_{args.model}.json', 'w'))
     else:
-        save_path = f'tg{args.tg_num}_val_results/binary'
+        save_path = f'tg{args.tg_num}_val_results/binary/{args.fp_type}_md{args.add_md}'
         if os.path.isdir(save_path):
             pass
         else:

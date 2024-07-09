@@ -46,8 +46,9 @@ def main():
     
     logging.info('=================================')
     logging.info('tg{} {} {}'.format(args.tg_num, args.inhale_type, args.model))
+    logging.info('Fingerprints: {}, Use Descriptors: {}'.format(args.fp_type, args.add_md))
 
-    x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type)
+    x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type, args)
     if args.cat3tohigh:
         y = new_multiclass2binary(y, args.tg_num)
     else:
@@ -87,14 +88,14 @@ def main():
             result['auc']['model'+str(p)].append(cv_result['val_auc'])
 
     if args.cat3tohigh:
-        save_path = f'tg{args.tg_num}_cat3high_val_results/binary_smote{args.neighbor}'
+        save_path = f'tg{args.tg_num}_cat3high_val_results/binary_smote{args.neighbor}/{args.fp_type}_md{args.add_md}'
         if os.path.isdir(save_path):
             pass
         else:
             os.makedirs(save_path)
         json.dump(result, open(f'{save_path}/{args.inhale_type}_{args.model}.json', 'w'))
     else:
-        save_path = f'tg{args.tg_num}_val_results/binary_smote{args.neighbor}'
+        save_path = f'tg{args.tg_num}_val_results/binary_smote{args.neighbor}/{args.fp_type}_md{args.add_md}'
         if os.path.isdir(save_path):
             pass
         else:
