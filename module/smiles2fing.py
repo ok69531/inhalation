@@ -85,7 +85,7 @@ def smiles2fing(data, args):
             ms_none_idx.extend(tp_ms_none_idx)
             ms = [ms_tmp[i] for i in range(len(ms_tmp)) if i not in set(ms_none_idx)]
         
-        descriptors = pd.DataFrame([dict(zip(descriptor_names, calc.CalcDescriptors(m))) for m in ms])
+        descriptors = pd.DataFrame([dict(zip(descriptor_names, calc.CalcDescriptors(m))) for m in ms]).dropna(axis = 1)
         
         fingerprints = fingerprints.astype(int).reset_index(drop = True)
         fingerprints = pd.concat((fingerprints, descriptors), axis = 1)
