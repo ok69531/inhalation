@@ -9,10 +9,7 @@ try:
         rdMolDescriptors, 
         rdFingerprintGenerator
     )
-    from rdkit.Chem.AllChem import (
-        GetMorganFingerprintAsBitVect, 
-        GetRDKitFPGenerator
-    )
+    # from rdkit.Chem.AllChem import GetRDKitFPGenerator
     from rdkit.ML.Descriptors import MoleculeDescriptors
     
 except:
@@ -29,9 +26,7 @@ except:
         rdMolDescriptors, 
         rdFingerprintGenerator
     )
-    from rdkit.Chem.AllChem import (
-        GetRDKitFPGenerator
-    )
+    # from rdkit.Chem.AllChem import GetRDKitFPGenerator
     from rdkit.ML.Descriptors import MoleculeDescriptors
 
 
@@ -91,7 +86,7 @@ def smiles2fing(data, args):
         fingerprints = pd.concat((fingerprints, descriptors), axis = 1)
         
     else:
-        fingerprints = fingerprints.astype(int).dropna().reset_index(drop = True)
+        fingerprints = fingerprints.dropna().astype(int).reset_index(drop = True)
         if fing_type == 'toxprint': 
             ms_none_idx = tp_ms_none_idx
     

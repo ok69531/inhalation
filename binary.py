@@ -44,6 +44,7 @@ def main():
 
     logging.info('=================================')
     logging.info('tg{} {} {}'.format(args.tg_num, args.inhale_type, args.model))
+    logging.info('Fingerprints: {}, Use Descriptors: {}'.format(args.fp_type, args.add_md))
     
     x, y = load_data(path = 'data', args = args)
     if args.cat3tohigh:
@@ -52,7 +53,31 @@ def main():
         y = multiclass2binary(y, args.tg_num)
     
     x_train, x_test, y_train, y_test = data_split(x, y, args.splitseed)
+    
+    if args.add_md:
+        if args.fp_type == 'maccs':
+            fp_length = 167
+        elif args.fp_type == 'toxprint':
+            fp_length = 729
+        elif args.fp_type == 'morgan':
+            fp_length = 1024
+        else:
+            fp_length = 2048
 
+        train_descriptors = x_train.iloc[:, fp_length:]
+        descriptors_colnames = train_descriptors.columns
+        
+        logging.info('Number of Descriptors: {}'.format(len(descriptors_colnames)))
+        
+        scaler = MinMaxScaler()
+        scaled_train_descriptors = pd.DataFrame(scaler.fit_transform(train_descriptors, y_train))
+        scaled_train_descriptors.columns = descriptors_colnames
+        x_train.iloc[:, fp_length:] = scaled_train_descriptors
+
+        scaled_test_descriptors = pd.DataFrame(scaler.transform(x_test.iloc[:, fp_length:]))
+        scaled_test_descriptors.columns = descriptors_colnames
+        x_test.iloc[:, fp_length:] = scaled_test_descriptors
+        
     # cross validation
     params = load_hyperparameter(args.model)
 
