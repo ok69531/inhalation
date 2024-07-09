@@ -14,6 +14,7 @@ from sklearn.metrics import (
     roc_auc_score,
     f1_score
 )
+from sklearn.preprocessing import MinMaxScaler
 
 from module.argument import get_parser
 from module.read_data import (
@@ -34,6 +35,7 @@ from module.common import (
 
 
 warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
 logging.basicConfig(format='', level=logging.INFO)
 
 
