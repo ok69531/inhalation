@@ -12,5 +12,6 @@ def get_parser():
     parser.add_argument('--smoteseed', type = int, default = 42)
     parser.add_argument('--neighbor', type = int, default = 5, help = 'the number of neighbors for SMOTE')
     parser.add_argument('--threshold', type = float, default = .5)
+    parser.add_argument('--cat3tohigh', type = bool, default = False)
     
     return parser

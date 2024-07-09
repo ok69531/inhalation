@@ -315,21 +315,31 @@ def print_best_param(val_result, metric: str):
     return best_param
 
 
-def load_val_result(path: str, tg_num: int, inhale_type: str, model: str, is_smote = True):
+def load_val_result(path: str, is_smote = True, args):
     if is_smote:
-        try:
-            with open(f'{path}/tg{tg_num}_val_results/binary_smote5/{inhale_type}_{model}.json', 'r') as file:
-                val_result = json.load(file)
-        except:
-            with open(f'{path}tg{tg_num}_val_results/binary_smote5/{inhale_type}_{model}.json', 'r') as file:
-                val_result = json.load(file)
+        # try:
+        #     with open(f'{path}/tg{tg_num}_val_results/binary_smote5/{inhale_type}_{model}.json', 'r') as file:
+        #         val_result = json.load(file)
+        # except:
+        if args.cat3tohigh:
+            saved_path = os.path.join(path, f'tg{args.tg_num}_cat3high_val_results', 'binary_smote5', f'{args.inhale_type}_{args.model}.json')
+        else:
+            saved_path = os.path.join(path, f'tg{args.tg_num}_val_results', 'binary_smote5', f'{args.inhale_type}_{args.model}.json')
+        
+        with open(saved_path, 'r') as file:
+            val_result = json.load(file)
     else:
-        try:
-            with open(f'{path}/tg{tg_num}_val_results/binary/{inhale_type}_{model}.json', 'r') as file:
-                val_result = json.load(file)
-        except:
-            with open(f'{path}tg{tg_num}_val_results/binary/{inhale_type}_{model}.json', 'r') as file:
-                val_result = json.load(file)
+        # try:
+        #     with open(f'{path}/tg{tg_num}_val_results/binary/{inhale_type}_{model}.json', 'r') as file:
+        #         val_result = json.load(file)
+        # except:
+        if args.cat3tohigh:
+            saved_path = os.path.join(path, f'tg{args.tg_num}_cat3high_val_results', 'binary', f'{args.inhale_type}_{args.model}.json')
+        else:
+            saved_path = os.path.join(path, f'tg{args.tg_num}_val_results', 'binary', f'{args.inhale_type}_{args.model}.json')
+        
+        with open(saved_path, 'r') as file:
+            val_result = json.load(file)
     
     return val_result
 

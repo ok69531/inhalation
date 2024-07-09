@@ -53,7 +53,7 @@ def main():
     elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
         args.model = 'mlp'
     
-    val_result = load_val_result(path = '../', tg_num = args.tg_num, inhale_type = args.inhale_type, model = args.model, is_smote = True)
+    val_result = load_val_result(path = '..', is_smote = True, args)
     best_param = print_best_param(val_result, args.metric)
     
     model = load_model(model = args.model, seed = 0, param = best_param)

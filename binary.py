@@ -15,7 +15,8 @@ from sklearn.metrics import (
 from module.argument import get_parser
 from module.read_data import (
     load_data,
-    multiclass2binary
+    multiclass2binary,
+    new_multiclass2binary
 )
 from module.smiles2fing import smiles2fing
 from module.get_model import (
@@ -43,7 +44,10 @@ def main():
     print('tg%s %s %s' % (args.tg_num, args.inhale_type, args.model))
     
     x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type)
-    y = multiclass2binary(y, args.tg_num)
+    if args.cat3tohigh:
+        y = new_multiclass2binary(y, args.tg_num)
+    else:
+        y = multiclass2binary(y, args.tg_num)
     
     x_train, x_test, y_train, y_test = data_split(x, y, args.splitseed)
 
@@ -78,7 +82,20 @@ def main():
             result['accuracy']['model'+str(p)].append(cv_result['val_accuracy'])
             result['auc']['model'+str(p)].append(cv_result['val_auc'])
 
-    json.dump(result, open(f'tg{args.tg_num}_val_results/binary/{args.inhale_type}_{args.model}.json', 'w'))
+    if args.cat3tohigh:
+        save_path = f'tg{args.tg_num}_cat3high_val_results/binary'
+        if os.path.isdir(save_path):
+            pass
+        else:
+            os.makedirs(save_path)
+        json.dump(result, open(f'{save_path}/{args.inhale_type}_{args.model}.json', 'w'))
+    else:
+        save_path = f'tg{args.tg_num}_val_results/binary'
+        if os.path.isdir(save_path):
+            pass
+        else:
+            os.makedirs(save_path)
+        json.dump(result, open(f'{save_path}/{args.inhale_type}_{args.model}.json', 'w'))
     
     best_param = print_best_param(val_result = result, metric = args.metric)
     

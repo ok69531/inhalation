@@ -16,11 +16,33 @@ def load_data(path: str, tg_num: int, inhale_type: str):
 
 
 def multiclass2binary(y, tg_num: int):
+    '''
+        category 0, 1 -> 1
+        category 2, 3, 4 -> 0
+    '''
     bin_y = y.copy()
     
     if tg_num == 403:
         bin_y[y<2] = 1
         bin_y[y>=2] = 0
+    
+    else:
+        bin_y[y<1] = 1
+        bin_y[y>=1] = 0
+    
+    return bin_y
+
+
+def new_multiclass2binary(y, tg_num: int):
+    '''
+        category 0, 1, 2 -> 1
+        category 3, 4 -> 0
+    '''
+    bin_y = y.copy()
+    
+    if tg_num == 403:
+        bin_y[y<3] = 1
+        bin_y[y>=3] = 0
     
     else:
         bin_y[y<1] = 1
