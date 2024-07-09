@@ -145,7 +145,7 @@ def main():
     logging.info("recall: {:.3f}".format(recall_score(y_test, pred)))
     logging.info("accuracy: {:.3f}".format(accuracy_score(y_test, pred)))
     logging.info("auc: {:.3f}".format(roc_auc_score(y_test, pred_score)))
-    logging.info("f1: {:.3f}".format(f1_scorre(y_test, pred)))
+    logging.info("f1: {:.3f}".format(f1_score(y_test, pred)))
 
 
 if __name__ == '__main__':
