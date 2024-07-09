@@ -30,7 +30,6 @@ except:
         rdFingerprintGenerator
     )
     from rdkit.Chem.AllChem import (
-        GetMorganFingerprintAsBitVect, 
         GetRDKitFPGenerator
     )
     from rdkit.ML.Descriptors import MoleculeDescriptors
@@ -58,12 +57,13 @@ def smiles2fing(data, args):
         if fing_type == 'maccs':
             maccs = [MACCSkeys.GenMACCSKeys(i) for i in ms]
             bits = [i.ToBitString() for i in maccs]
-        elif fing_type == 'morgan':
-            morgans = [GetMorganFingerprintAsBitVect(i, useChirality = True, radius = 2, nBits = 1024) for i in ms]
-            bits = [i.ToBitString() for i in morgans]
         elif fing_type == 'topo':
             topological = [rdMolDescriptors.GetHashedTopologicalTorsionFingerprintAsBitVect(i) for i in ms]
             bits = [i.ToBitString() for i in topological]
+        elif fing_type == 'morgan':
+            morgen = rdFingerprintGenerator.GetMorganGenerator(radius = 2, fpSize=1024)
+            mor_fp = [morgen.GetFingerprint(i) for i in ms]
+            bits = [i.ToBitString() for i in mor_fp]
         elif fing_type == 'rdkit':
             rdkgen = rdFingerprintGenerator.GetRDKitFPGenerator(fpSize=2048)
             rdkit_fp = [rdkgen.GetFingerprint(i) for i in ms]
@@ -91,7 +91,7 @@ def smiles2fing(data, args):
         fingerprints = pd.concat((fingerprints, descriptors), axis = 1)
         
     else:
-        fingerprints = fingerprints.dropna().reset_index(drop = True)
+        fingerprints = fingerprints.astype(int).dropna().reset_index(drop = True)
         if fing_type == 'toxprint': 
             ms_none_idx = tp_ms_none_idx
     
