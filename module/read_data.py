@@ -2,7 +2,10 @@ import pandas as pd
 from .smiles2fing import smiles2fing
 
 
-def load_data(path: str, tg_num: int, inhale_type: str, args):
+def load_data(path: str, args):
+    tg_num = args.tg_num
+    inhale_type = args.inhale_type
+    
     try:
         df = pd.read_excel(f'{path}tg{tg_num}_{inhale_type}.xlsx')
     except:

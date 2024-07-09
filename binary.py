@@ -45,7 +45,7 @@ def main():
     logging.info('=================================')
     logging.info('tg{} {} {}'.format(args.tg_num, args.inhale_type, args.model))
     
-    x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type)
+    x, y = load_data(path = 'data', args)
     if args.cat3tohigh:
         y = new_multiclass2binary(y, args.tg_num)
     else:
