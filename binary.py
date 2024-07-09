@@ -1,6 +1,7 @@
 import os
 import json
 import warnings
+import logging
 
 import numpy as np
 from tqdm import tqdm
@@ -32,7 +33,7 @@ from module.common import (
 
 
 warnings.filterwarnings('ignore')
-
+logging.basicConfig(format='', level=logging.INFO)
 
 def main():
     parser = get_parser()
@@ -41,8 +42,8 @@ def main():
     except:
         args = parser.parse_args([])
 
-    print('=================================')
-    print('tg%s %s %s' % (args.tg_num, args.inhale_type, args.model))
+    logging.info('=================================')
+    logging.info('tg{} {} {}'.format(args.tg_num, args.inhale_type, args.model))
     
     x, y = load_data(path = 'data', tg_num = args.tg_num, inhale_type = args.inhale_type)
     if args.cat3tohigh:
@@ -109,13 +110,13 @@ def main():
     auc = result['auc'][m]
     f1 = result['f1'][m]
     
-    print(f"best param: {best_param} \
-          \nvalidation result \
-          \nprecision: {np.mean(precision):.3f}({np.std(precision):.3f}) \
-          \nrecall: {np.mean(recall):.3f}({np.std(recall):.3f}) \
-          \naccuracy: {np.mean(acc):.3f}({np.std(acc):.3f}) \
-          \nauc: {np.mean(auc):.3f}({np.std(auc):.3f}) \
-          \nf1: {np.mean(f1):.3f}({np.std(f1):.3f})")
+    logging.info("best param: {}".format(best_param))
+    logging.info("validation result")
+    logging.info("precision: {:.3f}{:.3f}".format(np.mean(precision), np.std(precision)))
+    logging.info("recall: {:.3f}{:.3f}".format(np.mean(recall), np.std(recall)))
+    logging.info("accuracy: {:.3f}{:.3f}".format(np.mean(acc), np.std(acc)))
+    logging.info("auc: {:.3f}{:.3f}".format(np.mean(auc), np.std(auc)))
+    logging.info("f1: {:.3f}{:.3f}".format(np.mean(f1), np.std(f1)))
     
     # test reulst
     model = load_model(model = args.model, seed = seed, param = best_param)
@@ -128,14 +129,14 @@ def main():
     else:
         pred = model.predict(x_test)
         pred_score = model.predict_proba(x_test)[:, 1]
-        
-    print(f'test result \
-          \nbest param: {best_param} \
-          \nprecision: {precision_score(y_test, pred):.3f} \
-          \nrecall: {recall_score(y_test, pred):.3f} \
-          \naccuracy: {accuracy_score(y_test, pred):.3f} \
-          \nauc: {roc_auc_score(y_test, pred_score):.3f} \
-          \nf1: {f1_score(y_test, pred):.3f}')
+    
+    logging.info("test result")
+    logging.info("best param: {}".format(best_param))
+    logging.info("precision: {:.3f}".format(precision_score(y_test, pred)))
+    logging.info("recall: {:.3f}".format(recall_score(y_test, pred)))
+    logging.info("accuracy: {:.3f}".format(accuracy_score(y_test, pred)))
+    logging.info("auc: {:.3f}".format(roc_auc_score(y_test, pred_score)))
+    logging.info("f1: {:.3f}".format(f1_scorre(y_test, pred)))
 
 
 if __name__ == '__main__':
