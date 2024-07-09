@@ -315,7 +315,7 @@ def print_best_param(val_result, metric: str):
     return best_param
 
 
-def load_val_result(path: str, is_smote = True, args):
+def load_val_result(path: str, args, is_smote = True):
     if is_smote:
         # try:
         #     with open(f'{path}/tg{tg_num}_val_results/binary_smote5/{inhale_type}_{model}.json', 'r') as file:
