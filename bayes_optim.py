@@ -29,6 +29,7 @@ from module.common import (
     print_best_param
 )
 
+from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -126,11 +127,15 @@ def main():
         scaled_test_descriptors.columns = descriptors_colnames
         x_test.iloc[:, fp_length:] = scaled_test_descriptors
 
-
-    pipeline = ImbPipeline([
-        ('smote', SMOTE(random_state = args.smoteseed, k_neighbors = args.neighbor)),
-        ('classifier', load_model(args.model))
-    ])
+    if (args.tg_num == 403) & (args.inhale_type == 'vapour'):
+        pipeline = Pipeline([
+            ('classifier', load_model(args.model))
+        ])
+    else:
+        pipeline = ImbPipeline([
+            ('smote', SMOTE(random_state = args.smoteseed, k_neighbors = args.neighbor)),
+            ('classifier', load_model(args.model))
+        ])
 
     best_params_list = []
 
