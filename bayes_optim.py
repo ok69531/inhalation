@@ -13,7 +13,8 @@ from sklearn.metrics import (
     recall_score,
     accuracy_score,
     roc_auc_score,
-    f1_score
+    f1_score,
+    make_scorer
 )
 from sklearn.preprocessing import MinMaxScaler
 
@@ -146,10 +147,12 @@ def main():
             estimator = pipeline,
             search_spaces = search_space,
             cv = 5,
-            n_iter = 100
+            n_iter = 100,
+            random_state = seed,
+            scoring=make_scorer(f1_score)
         )
         opt.fit(x_train, y_train)
-        
+            
         best_params_list.append(frozenset(opt.best_params_.items()))
 
     test_prec_list = []
@@ -185,8 +188,12 @@ def main():
         'auc': test_acc_list
     }
     
-    save_path = os.path.join('bayes_optim', f'tg{args.tg_num}_{args.inhale_type}_{args.fp_type}_md{args.add_md}.json')
-    json.dump(checkpoints, open(save_path, 'w'))
+    save_path = 'bayes_optim/'
+    if os.path.exists(save_path):
+        pass
+    else:
+        os.makedirs(save_path)
+    json.dump(checkpoints, open(os.path.join(save_path, f'tg{args.tg_num}_{args.inhale_type}_{args.fp_type}_md{args.add_md}.json'), 'w'))
     
     logging.info("best param: {}".format(best_params_list))
     logging.info("precisions: {}".format(test_prec_list))
@@ -201,7 +208,7 @@ def main():
     logging.info("accuracy: {:.3f}({:.3f})".format(np.mean(test_acc_list), np.std(test_acc_list)))
     logging.info("auc: {:.3f}({:.3f})".format(np.mean(test_auc_list), np.std(test_auc_list)))
     logging.info("f1: {:.3f}({:.3f})".format(np.mean(test_f1_list), np.std(test_f1_list)))
-    
+
 
 def load_model(model: str, **kwargs):
     if model == 'logistic':
@@ -260,11 +267,11 @@ def get_search_space(model_name, seed):
         }
     elif model_name == 'mlp':
         params = {
-            'classifier__hidden_layer_sizes': [(50), (100, 50, 10), (100, 70, 50, 30, 10)],
+            'classifier__hidden_layer_sizes': Integer(30, 200),
             'classifier__activation': ['relu', 'tanh'],
             'classifier__solver': ['adam', 'sgd'],
-            'classifier__alpha': (0.001, 0.0001),
-            'classifier__learning_rate_init': (0.1, 0.001),
+            'classifier__alpha': (1e-4, 1e-2),
+            'classifier__learning_rate_init': (1e-3, 1e-1),
             'classifier__max_iter': Integer(50, 200)
         }
     

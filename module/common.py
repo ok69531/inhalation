@@ -1,3 +1,4 @@
+import os
 import json
 import sklearn
 import numpy as np
@@ -322,9 +323,9 @@ def load_val_result(path: str, args, is_smote = True):
         #         val_result = json.load(file)
         # except:
         if args.cat3tohigh:
-            saved_path = os.path.join(path, f'tg{args.tg_num}_cat3high_val_results', 'binary_smote5', f'{args.inhale_type}_{args.model}.json')
+            saved_path = os.path.join(path, f'tg{args.tg_num}_cat3high_val_results', 'binary_smote5', f'{args.fp_type}_md{args.add_md}', f'{args.inhale_type}_{args.model}.json')
         else:
-            saved_path = os.path.join(path, f'tg{args.tg_num}_val_results', 'binary_smote5', f'{args.inhale_type}_{args.model}.json')
+            saved_path = os.path.join(path, f'tg{args.tg_num}_val_results', 'binary_smote5', f'{args.fp_type}_md{args.add_md}', f'{args.inhale_type}_{args.model}.json')
         
         with open(saved_path, 'r') as file:
             val_result = json.load(file)
@@ -334,9 +335,9 @@ def load_val_result(path: str, args, is_smote = True):
         #         val_result = json.load(file)
         # except:
         if args.cat3tohigh:
-            saved_path = os.path.join(path, f'tg{args.tg_num}_cat3high_val_results', 'binary', f'{args.inhale_type}_{args.model}.json')
+            saved_path = os.path.join(path, f'tg{args.tg_num}_cat3high_val_results', 'binary', f'{args.fp_type}_md{args.add_md}', f'{args.inhale_type}_{args.model}.json')
         else:
-            saved_path = os.path.join(path, f'tg{args.tg_num}_val_results', 'binary', f'{args.inhale_type}_{args.model}.json')
+            saved_path = os.path.join(path, f'tg{args.tg_num}_val_results', 'binary', f'{args.fp_type}_md{args.add_md}', f'{args.inhale_type}_{args.model}.json')
         
         with open(saved_path, 'r') as file:
             val_result = json.load(file)

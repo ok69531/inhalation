@@ -12,7 +12,8 @@ from module.argument import get_parser
 from module.read_data import (
     load_data,
     load_pred_data,
-    multiclass2binary
+    multiclass2binary,
+    new_multiclass2binary
 )
 from module.smiles2fing import smiles2fing
 from module.get_model import load_model
@@ -32,28 +33,64 @@ def main():
         args = parser.parse_args()
     except:
         args = parser.parse_args([])
+    
+    if (args.tg_num == 403) & (args.inhale_type == 'aerosol'):
+        args.model = 'qda'
+        args.fp_type = 'maccs'
+        args.add_md = True
+        args.cat3tohigh = True
+    elif (args.tg_num == 403) & (args.inhale_type == 'vapour'):
+        args.model = 'xgb'
+        args.fp_type = 'morgan'
+        args.add_md = True
+        args.cat3tohigh = True
+    elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
+        # rdkit과 rdkit-md의 f1-score가 performance가 동일. auc가 더 높은 rdkit-md 사용
+        args.model = 'logistic'
+        args.fp_type = 'rdkit'
+        args.add_md = True
+        args.cat3tohigh = False
+    elif (args.tg_num == 412) & (args.inhale_type == 'vapour'):
+        args.model = 'mlp'
+        args.fp_type = 'maccs'
+        args.add_md = False
+        args.cat3tohigh = False
+    elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
+        # lda, dt, gbt 세 모델의 performance가 동일. auc가 제일 높은 dt 사용
+        args.model = 'dt'
+        args.fp_type = 'maccs'
+        args.add_md = True
+        args.cat3tohigh = False
+    elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
+        args.model = 'rf'
+        args.fp_type = 'morgan'
+        args.add_md = True
+        args.cat3tohigh = False
 
-    x, y = load_data(path = '../data', tg_num = args.tg_num, inhale_type = args.inhale_type)
-    y = multiclass2binary(y, args.tg_num)
+    x, y = load_data(path = '../data', args = args)
+    if args.cat3tohigh:
+        y = new_multiclass2binary(y, args.tg_num)
+    else:
+        y = multiclass2binary(y, args.tg_num)
     
     fingerprints, pred_df, pred_df_origin = load_pred_data()
     
-    if (args.tg_num == 403) & (args.inhale_type == 'vapour'):
-        args.model = 'lgb'
-    elif (args.tg_num == 403) & (args.inhale_type == 'aerosol'):
-        args.model = 'rf'
-    elif (args.tg_num == 412) & (args.inhale_type == 'vapour'):
-        args.model = 'mlp'
-    elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
-        args.model = 'qda'
-        args.smoteseed = 0
-    elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
-        args.model = 'lda'
-        args.smoteseed = 119
-    elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
-        args.model = 'mlp'
+    # if (args.tg_num == 403) & (args.inhale_type == 'vapour'):
+    #     args.model = 'lgb'
+    # elif (args.tg_num == 403) & (args.inhale_type == 'aerosol'):
+    #     args.model = 'rf'
+    # elif (args.tg_num == 412) & (args.inhale_type == 'vapour'):
+    #     args.model = 'mlp'
+    # elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
+    #     args.model = 'qda'
+    #     args.smoteseed = 0
+    # elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
+    #     args.model = 'lda'
+    #     args.smoteseed = 119
+    # elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
+    #     args.model = 'mlp'
     
-    val_result = load_val_result(path = '..', args, is_smote = True)
+    val_result = load_val_result(path = '..', args = args, is_smote = True)
     best_param = print_best_param(val_result, args.metric)
     
     model = load_model(model = args.model, seed = 0, param = best_param)
