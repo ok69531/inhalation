@@ -153,7 +153,7 @@ def main():
         )
         opt.fit(x_train, y_train)
             
-        best_params_list.append(frozenset(opt.best_params_.items()))
+        best_params_list.append(dict(opt.best_params_.items()))
 
     test_prec_list = []
     test_rec_list = []
@@ -188,13 +188,6 @@ def main():
         'auc': test_acc_list
     }
     
-    save_path = 'bayes_optim/'
-    if os.path.exists(save_path):
-        pass
-    else:
-        os.makedirs(save_path)
-    json.dump(checkpoints, open(os.path.join(save_path, f'tg{args.tg_num}_{args.inhale_type}_{args.fp_type}_md{args.add_md}.json'), 'w'))
-    
     logging.info("best param: {}".format(best_params_list))
     logging.info("precisions: {}".format(test_prec_list))
     logging.info("recalls: {}".format(test_rec_list))
@@ -208,6 +201,13 @@ def main():
     logging.info("accuracy: {:.3f}({:.3f})".format(np.mean(test_acc_list), np.std(test_acc_list)))
     logging.info("auc: {:.3f}({:.3f})".format(np.mean(test_auc_list), np.std(test_auc_list)))
     logging.info("f1: {:.3f}({:.3f})".format(np.mean(test_f1_list), np.std(test_f1_list)))
+    
+    save_path = 'bayes_optim/'
+    if os.path.exists(save_path):
+        pass
+    else:
+        os.makedirs(save_path)
+    json.dump(checkpoints, open(os.path.join(save_path, f'tg{args.tg_num}_{args.inhale_type}_{args.fp_type}_md{args.add_md}.json'), 'w'))
 
 
 def load_model(model: str, **kwargs):
