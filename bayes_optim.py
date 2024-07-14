@@ -242,7 +242,7 @@ def get_search_space(model_name, seed):
         params = {
             'classifier__n_estimators': Integer(5, 150),
             'classifier__criterion': ['gini'],
-            'classifier__min_samples_split': Integer(1, 4),
+            'classifier__min_samples_split': Integer(2, 5),
             'classifier__min_samples_leaf': Integer(1, 3),
             'classifier__max_features': ['sqrt', 'log2']
         }
@@ -260,12 +260,12 @@ def get_search_space(model_name, seed):
         }
     elif model_name == 'mlp':
         params = {
-            'hidden_layer_sizes': [(50), (100, 50, 10), (100, 70, 50, 30, 10)],
-            'activation': ['relu', 'tanh'],
-            'solver': ['adam', 'sgd'],
-            'alpha': [0.001, 0.0001],
-            'learning_rate_init': (0.1, 0.001),
-            'max_iter': Integer(50, 200)
+            'classifier__hidden_layer_sizes': [(50), (100, 50, 10), (100, 70, 50, 30, 10)],
+            'classifier__activation': ['relu', 'tanh'],
+            'classifier__solver': ['adam', 'sgd'],
+            'classifier__alpha': (0.001, 0.0001),
+            'classifier__learning_rate_init': (0.1, 0.001),
+            'classifier__max_iter': Integer(50, 200)
         }
     
     return params
