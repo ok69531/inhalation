@@ -147,7 +147,7 @@ def main():
             estimator = pipeline,
             search_spaces = search_space,
             cv = 5,
-            n_iter = 500,
+            n_iter = 300,
             random_state = seed,
             scoring=make_scorer(f1_score)
         )
