@@ -54,7 +54,7 @@ def new_multiclass2binary(y, tg_num: int):
     return bin_y
 
 
-def load_pred_data():
+def load_pred_data(args):
     df_tmp = pd.read_excel('pred_data.xlsx').drop_duplicates(subset = ('PREFERRED_NAME', 'SMILES'))
     
     # try:
@@ -64,7 +64,7 @@ def load_pred_data():
     
     df = df_tmp[df_tmp['SMILES'].notna()].reset_index(drop = True)
     
-    drop_idx, fingerprints = smiles2fing(df.SMILES)
+    drop_idx, fingerprints = smiles2fing(df, args)
     df = df.drop(drop_idx).reset_index(drop = True)
     
     return fingerprints, df, df_tmp

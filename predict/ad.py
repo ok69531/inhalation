@@ -1,18 +1,87 @@
+#%%
+import sys
+sys.path.append('../')
+
+import os
+import logging
+import warnings
+from tqdm import tqdm
+from rdkit import RDLogger 
+
 import numpy as np
+import pandas as pd
+from scipy.spatial import distance
+from imblearn.over_sampling import SMOTE
+
+from module.argument import get_parser
+from module.read_data import (
+    load_pred_data,
+    multiclass2binary,
+    new_multiclass2binary
+)
+from module.smiles2fing import smiles2fing
+from module.get_model import load_model
+from module.common import (
+    load_val_result,
+    print_best_param
+)
+
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.neighbors import NearestNeighbors
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    accuracy_score,
+    f1_score,
+    roc_auc_score
+)
+
+warnings.filterwarnings('ignore')
+RDLogger.DisableLog('rdApp.*')
+logging.basicConfig(format='', level=logging.INFO)
 
 
-#4-2. DoA 함수 생성
-# 마할라노비스 거리 계산 함수
+def load_data(path: str, args):
+    tg_num = args.tg_num
+    inhale_type = args.inhale_type
+    
+    try:
+        df = pd.read_excel(f'{path}tg{tg_num}_{inhale_type}.xlsx')
+    except:
+        df = pd.read_excel(f'{path}/tg{tg_num}_{inhale_type}.xlsx')
+    
+    drop_idx, fingerprints = smiles2fing(df[['CasRN', 'SMILES']], args)
+    
+    y = df.category.drop(drop_idx).reset_index(drop = True)
+    
+    return df, drop_idx, fingerprints, y
+
+
+def data_split(X, y, seed):
+    sss = StratifiedShuffleSplit(n_splits = 1, test_size = 0.2, random_state = seed)
+    
+    for train_idx, test_idx in sss.split(X, y):
+        train_x = X.iloc[train_idx].reset_index(drop = True)
+        train_y = y.iloc[train_idx].reset_index(drop = True)
+        test_x = X.iloc[test_idx].reset_index(drop = True)
+        test_y = y.iloc[test_idx].reset_index(drop = True)
+    
+    return train_x, test_x, train_y, test_y, train_idx, test_idx
+
+
 def mahalanobis_distance(fingerprint, train_fingerprints, epsilon=1e-10):
+    ''' 마할라노비스 거리 계산 함수 '''
     centroid = np.mean(train_fingerprints, axis=0)
     cov_matrix = np.cov(train_fingerprints.T) + np.eye(train_fingerprints.shape[1]) * epsilon
     return distance.mahalanobis(fingerprint, centroid, np.linalg.inv(cov_matrix))
 
 
-# 유클리드 거리, threshold 계산 함수
 def euclidean_distance(fingerprint, train_fingerprints):
+    ''' 유클리드 거리, threshold 계산 함수 '''
     centroid = np.mean(train_fingerprints, axis=0)
     return distance.euclidean(fingerprint, centroid)
+
 
 def calculate_ad_threshold(train_fingerprints, k=3, Z=0.5):
     """Calculate the Applicability Domain threshold based on Euclidean distances."""
@@ -24,191 +93,336 @@ def calculate_ad_threshold(train_fingerprints, k=3, Z=0.5):
     D_T = y_bar + Z * sigma
     return D_T
 
-#4-3. 최적 모델을 활용하여 화학물질 독성 예측하는 함수 생성
-def predict_from_csv(model_file, selector_file, scaler_file, best_params_file, training_data_file_path, target_data_file_path, output_csv, fingerprint_type, k=3, Z=0.5):
-    # Load model, feature selector, and scaler
-    print("Loading model, selector, and scaler...")
-    model = joblib.load(model_file)
-    scaler = joblib.load(scaler_file)
-    selector = joblib.load(selector_file)
 
-    
-    # Load best hyperparameters if the file exists
-    if os.path.exists(best_params_file):
-        print("Loading best hyperparameters...")
-        best_params = joblib.load(best_params_file)
-        # Update the model with the best hyperparameters
-        model.set_params(**best_params)
-    else:
-        print("Best hyperparameters file not found. Proceeding with default parameters.")
-    
-    # Process training data
-    print("Processing training data...")
-    train_data = load_and_preprocess_training_data(training_data_file_path)
-    train_data = train_data[['SMILES', 'Mol']]
-    train_data['Fingerprint'] = train_data['Mol'].apply(lambda mol: generate_fingerprint(mol, fingerprint_type) if mol is not None else None)
-    train_data = train_data[train_data['Fingerprint'].notnull()]
-    train_fingerprints = np.array(list(train_data['Fingerprint'])).reshape(train_data.shape[0], -1)
-    print(f"Number of training fingerprints: {train_fingerprints.shape[0]}")
-    print(f"Training fingerprints shape: {train_fingerprints.shape}")
-
-    # Process target data
-    print("Processing target data...")
-    target_data = load_and_preprocess_target_data(target_data_file_path)
-    target_data = target_data[['SMILES', 'Mol']]
-    target_data['Fingerprint'] = target_data['Mol'].apply(lambda mol: generate_fingerprint(mol, fingerprint_type) if mol is not None else None)
-    target_data = target_data[target_data['Fingerprint'].notnull()]
-    target_fingerprints = np.array(list(target_data['Fingerprint'])).reshape(target_data.shape[0], -1)
-    print(f"Number of target fingerprints: {target_fingerprints.shape[0]}")
-    print(f"Target fingerprints shape: {target_fingerprints.shape}")
-
-    # Scale and select features using the loaded scaler
-    print("Scaling and selecting features...")
-    train_fingerprints_scaled = scaler.transform(train_fingerprints)
-    train_fingerprints_selected = selector.transform(train_fingerprints_scaled)
-    target_fingerprints_scaled = scaler.transform(target_fingerprints)
-    target_fingerprints_selected = selector.transform(target_fingerprints_scaled)
-    print(f"Scaled and selected training fingerprints shape: {train_fingerprints_selected.shape}")
-    print(f"Scaled and selected target fingerprints shape: {target_fingerprints_selected.shape}")
-
+def eval_model_with_ad(model, x_train, x_test, y_test, k=3, Z=0.5):
+    ''' 최적 모델을 활용하여 화학물질 독성 예측하는 함수 생성 '''
     # Calculate Applicability Domain threshold
     print("Calculating Applicability Domain threshold...")
-    D_T = calculate_ad_threshold(train_fingerprints_selected, k, Z)
+    D_T = calculate_ad_threshold(x_train, k, Z)
     print(f"Applicability Domain threshold (D_T): {D_T}")
 
     # Predict target data
     print("Predicting target data...")
-    predictions = []
-    #reliability_mahalanobis = []
-    reliability_euclidean = []
-    mahalanobis_distances = []
+    
     euclidean_distances = []
-    for fp in target_fingerprints_selected:
-        md = mahalanobis_distance(fp, train_fingerprints_selected)
-        ed = euclidean_distance(fp, train_fingerprints_selected)
+    mahalanobis_distances = []
+    euclidean_reliability = []
+    mahalanobis_reliability = []
+    
+    for fp in tqdm(np.array(x_test)):
+        md = mahalanobis_distance(fp, x_train)
+        ed = euclidean_distance(fp, x_train)
         mahalanobis_distances.append(md)
         euclidean_distances.append(ed)
         
-        #if md < threshold:
-        #    reliability_mahalanobis.append("reliable")
-        #else:
-        #    reliability_mahalanobis.append("unreliable")
-        
         if ed < D_T:
-            reliability_euclidean.append("reliable")
+            euclidean_reliability.append("reliable")
         else:
-            reliability_euclidean.append("unreliable")
+            euclidean_reliability.append("unreliable")
         
-        pred = model.predict(fp.reshape(1, -1))
-        predictions.append(pred[0])
-
-
-#3-3. 모델 평가 및 저장 함수
-
-def evaluate_models(X_train, y_train, X_test, y_test, fingerprint_type, model_params, scoring, model_save_dir, apply_scaling=True):
-    """Train, evaluate, and save machine learning models using different fingerprint types and model parameters."""
-    results = {}
-    best_estimators = {}
-    test_predictions = pd.DataFrame(index=range(len(X_test)))
-    reliability_dict = {}
-    
-    for name, mp in tqdm(model_params.items(), desc="Model"):
-        print(f"Training {name} with {fingerprint_type} fingerprint...")
-        
-        # Feature selection
-        X_train_selected, selector, selected_features = feature_selection(X_train, y_train)
-        
-        # Save feature selector and selected feature indices
-        selector_file = os.path.join(model_save_dir, f'{fingerprint_type}_{name}_selector.pkl')
-        selected_features_file = os.path.join(model_save_dir, f'{fingerprint_type}_{name}_selected_features.pkl')
-        joblib.dump(selector, selector_file)
-        joblib.dump(selected_features, selected_features_file)
-        
-        # Stratified K-Fold Cross Validation
-        skf = StratifiedKFold(n_splits=5)
-        
-        # Create a pipeline with SMOTE and the model
-        pipeline = Pipeline([
-            ('smote', SMOTE(random_state=42)),
-            ('model', mp['model'])
-        ])
-        
-        # Perform Grid Search
-        grid = GridSearchCV(estimator=pipeline, param_grid=mp['params'], cv=skf, scoring='f1')
-        grid.fit(X_train_selected, y_train)
-        
-        best_estimators[name] = grid.best_estimator_
-        
-        # Save model
-        model_save_path = os.path.join(model_save_dir, f'{fingerprint_type}_{name}.pkl')
-        joblib.dump(grid.best_estimator_, model_save_path)
-        
-        # Save best hyperparameters
-        best_params_path = os.path.join(model_save_dir, f'{fingerprint_type}_{name}_best_params.pkl')
-        joblib.dump(grid.best_params_, best_params_path)
-        
-        # Load the saved scaler, if it exists
-        scaler_file = os.path.join(model_save_dir, f'{fingerprint_type}_scaler.pkl')
-        if os.path.exists(scaler_file):
-            scaler = joblib.load(scaler_file)
+        if md < D_T:
+            mahalanobis_reliability.append("reliable")
         else:
-            scaler = None
+            mahalanobis_reliability.append("unreliable")
         
-        # Collect results
-        results[name] = {}
+    pred = model.predict(x_test)
+    pred_prob = model.predict_proba(x_test)[:, 1]
+    
+    results = pd.DataFrame({
+        'Prediction': pred,
+        'Predicted Probability': pred_prob,
+        'Euclidean Reliablity': euclidean_reliability, 
+        'Euclidean Distance': euclidean_distances,
+        'Mahalanobis Reliablity': mahalanobis_reliability, 
+        'Mahalanobis Distance': mahalanobis_distances
+    })
+    
+    eu_rel_idx = np.where(results['Euclidean Reliablity'] == 'reliable')[0]
+    ma_rel_idx = np.where(results['Mahalanobis Reliablity'] == 'reliable')[0]
+    
+    logging.info("")
+    logging.info("Euclidean reliable test result")
+    if len(eu_rel_idx) != 0:
+        logging.info("precision: {:.3f}".format(precision_score(y_test[eu_rel_idx], pred[eu_rel_idx])))
+        logging.info("recall: {:.3f}".format(recall_score(y_test[eu_rel_idx], pred[eu_rel_idx])))
+        logging.info("accuracy: {:.3f}".format(accuracy_score(y_test[eu_rel_idx], pred[eu_rel_idx])))
+        if len(y_test[eu_rel_idx].unique() == 1):
+            logging.info(f"Euclidean reliable data has only {y_test[eu_rel_idx].unique()[0]} label.")
+        else:
+            logging.info("auc: {:.3f}".format(roc_auc_score(y_test[eu_rel_idx], pred_prob[eu_rel_idx])))
+        logging.info("f1: {:.3f}".format(f1_score(y_test[eu_rel_idx], pred[eu_rel_idx])))
+    else:
+        logging.info("There is no Euclidean reliable data!")
+    
+    logging.info("")
+    logging.info("Mahalanobis reliable test result")
+    if len(ma_rel_idx) != 0:
+        logging.info("precision: {:.3f}".format(precision_score(y_test[ma_rel_idx], pred[ma_rel_idx])))
+        logging.info("recall: {:.3f}".format(recall_score(y_test[ma_rel_idx], pred[ma_rel_idx])))
+        logging.info("accuracy: {:.3f}".format(accuracy_score(y_test[ma_rel_idx], pred[ma_rel_idx])))
+        if len(y_test[ma_rel_idx].unique() == 1):
+            logging.info(f"Euclidean reliable data has only {y_test[ma_rel_idx].unique()[0]} label.")
+        else:
+            logging.info("auc: {:.3f}".format(roc_auc_score(y_test[ma_rel_idx], pred_prob[ma_rel_idx])))
+        logging.info("f1: {:.3f}".format(f1_score(y_test[ma_rel_idx], pred[ma_rel_idx])))
+    else:
+        logging.info("There is no Mahalanobis reliable data!")
         
-        for metric_name, metric in tqdm(scoring.items(), desc=f"Evaluating {name}"):
-            scores = cross_val_score(grid.best_estimator_, X_train_selected, y_train, cv=skf, scoring=metric)
-            results[name][metric_name] = scores.mean()
+    return results
 
-            # Scale and select features for the test set
-            if apply_scaling and scaler is not None:
-                X_test_scaled = scaler.transform(X_test)
-            else:
-                X_test_scaled = X_test
-            X_test_selected = selector.transform(X_test_scaled)
-            test_pred = grid.best_estimator_.predict(X_test_selected)
-            
-            # Calculate Applicability Domain threshold
-            D_T = calculate_ad_threshold(X_train_selected)
-            reliability = [euclidean_distance(fp, X_train_selected) < D_T for fp in X_test_selected]
-            
-            reliability_dict[f'{name}_reliability'] = reliability
-            
-            # Directly calculate metric for the test set
-            if metric_name == 'accuracy':
-                test_score = accuracy_score(y_test, test_pred)
-            elif metric_name == 'f1':
-                test_score = f1_score(y_test, test_pred)
-            elif metric_name == 'roc_auc':
-                test_score = roc_auc_score(y_test, test_pred)
-            elif metric_name == 'precision':
-                test_score = precision_score(y_test, test_pred, zero_division=1)
-            elif metric_name == 'recall':
-                test_score = recall_score(y_test, test_pred, zero_division=1)
-            else:
-                test_score = metric(y_test, test_pred)
-            
-            results[name][f'test_{metric_name}'] = test_score
-        
-        test_predictions[name] = test_pred
+
+#%%
+parser = get_parser()
+try:
+    args = parser.parse_args()
+except:
+    args = parser.parse_args([])
+
+# args.tg_num = 403
+# args.inhale_type = 'aerosol'
+
+if (args.tg_num == 403) & (args.inhale_type == 'aerosol'):
+    args.model = 'qda'
+    args.fp_type = 'maccs'
+    args.add_md = True
+    args.cat3tohigh = True
+    is_smote = True
+elif (args.tg_num == 403) & (args.inhale_type == 'vapour'):
+    args.model = 'xgb'
+    args.fp_type = 'morgan'
+    args.add_md = True
+    args.cat3tohigh = True
+    is_smote = False
+elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
+    # rdkit과 rdkit-md의 f1-score가 performance가 동일. auc가 더 높은 rdkit-md 사용
+    args.model = 'logistic'
+    args.fp_type = 'rdkit'
+    args.add_md = True
+    args.cat3tohigh = False
+    is_smote = True
+elif (args.tg_num == 412) & (args.inhale_type == 'vapour'):
+    args.model = 'mlp'
+    args.fp_type = 'maccs'
+    args.add_md = False
+    args.cat3tohigh = False
+    is_smote = True
+elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
+    # lda, dt, gbt 세 모델의 performance가 동일. auc가 제일 높은 dt 사용
+    args.model = 'dt'
+    args.fp_type = 'maccs'
+    args.add_md = True
+    args.cat3tohigh = False
+    is_smote = True
+elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
+    args.model = 'rf'
+    args.fp_type = 'morgan'
+    args.add_md = True
+    args.cat3tohigh = False
+    is_smote = True
+
+logging.info('=================================')
+logging.info('tg{} {} {}'.format(args.tg_num, args.inhale_type, args.model))
+logging.info('Fingerprints: {}, Use Descriptors: {}'.format(args.fp_type, args.add_md))
+
+df, drop_idx, x, y = load_data(path = '../data', args = args)
+if args.cat3tohigh:
+    y = new_multiclass2binary(y, args.tg_num)
+else:
+    y = multiclass2binary(y, args.tg_num)
+
+x_train, x_test, y_train, y_test, train_idx, test_idx = data_split(x, y, args.splitseed)
+
+test_df = df.drop(drop_idx).reset_index(drop = True).iloc[test_idx].reset_index(drop = True)
+
+
+if args.add_md:
+    if args.fp_type == 'maccs':
+        fp_length = 167
+    elif args.fp_type == 'toxprint':
+        fp_length = 729
+    elif args.fp_type == 'morgan':
+        fp_length = 1024
+    else:
+        fp_length = 2048
+
+    train_descriptors = x_train.iloc[:, fp_length:]
+    descriptors_colnames = train_descriptors.columns
     
-    results_df = pd.DataFrame(results).transpose()
-    reliability_df = pd.DataFrame(reliability_dict)
+    logging.info('Number of Descriptors: {}'.format(len(descriptors_colnames)))
     
-    # Save results
-    results_path = os.path.join(model_save_dir, f'results_{fingerprint_type}.csv')
-    results_df.to_csv(results_path)
+    scaler = MinMaxScaler()
+    scaled_train_descriptors = pd.DataFrame(scaler.fit_transform(train_descriptors, y_train))
+    scaled_train_descriptors.columns = descriptors_colnames
+    x_train.iloc[:, fp_length:] = scaled_train_descriptors
+
+    scaled_test_descriptors = pd.DataFrame(scaler.transform(x_test.iloc[:, fp_length:]))
+    scaled_test_descriptors.columns = descriptors_colnames
+    x_test.iloc[:, fp_length:] = scaled_test_descriptors
+
+val_result = load_val_result(path = '..', args = args, is_smote = is_smote)
+best_param = print_best_param(val_result, args.metric)
+
+model = load_model(model = args.model, seed = 0, param = best_param)
+
+if is_smote:
+    smote = SMOTE(random_state = args.smoteseed, k_neighbors = args.neighbor)
+    x_train, y_train = smote.fit_resample(x_train, y_train)
+else:
+    pass
+
+model.fit(x_train, y_train)
+
+result_with_ad = eval_model_with_ad(model, x_train, x_test, y_test, k = 3, Z = 0.5)
+result_with_ad = pd.concat([test_df['SMILES'], result_with_ad], axis = 1)
+
+save_path = 'pred_result_with_ad/test'
+if os.path.exists(save_path):
+    pass
+else:
+    os.makedirs(save_path)
     
-    # Save test predictions
-    test_predictions_path = os.path.join(model_save_dir, f'test_predictions_{fingerprint_type}.csv')
-    test_predictions.to_csv(test_predictions_path, index=False)
-    
-    # Save reliability results
-    reliability_path = os.path.join(model_save_dir, f'reliability_{fingerprint_type}.csv')
-    reliability_df.to_csv(reliability_path, index=False)
-    
-    print(f"Loaded results for {fingerprint_type}:")
-    print(results_df)
-    
-    return results_df, best_estimators, test_predictions, reliability_df
+save_path = os.path.join(save_path, f'tg{args.tg_num}_{args.inhale_type}_{args.fp_type}_md{args.add_md}_{args.model}.xlsx')
+result_with_ad.to_excel(save_path, header = True, index = False)
+
+
+# #%%
+# from rdkit import Chem
+# from rdkit.Chem import MACCSkeys, DataStructs
+
+
+# args.tg_num = 403
+# args.inhale_type = 'aerosol'
+
+# if (args.tg_num == 403) & (args.inhale_type == 'aerosol'):
+#     args.model = 'qda'
+#     args.fp_type = 'maccs'
+#     args.add_md = True
+#     args.cat3tohigh = True
+#     is_smote = True
+# elif (args.tg_num == 403) & (args.inhale_type == 'vapour'):
+#     args.model = 'xgb'
+#     args.fp_type = 'morgan'
+#     args.add_md = True
+#     args.cat3tohigh = True
+#     is_smote = False
+# elif (args.tg_num == 412) & (args.inhale_type == 'aerosol'):
+#     # rdkit과 rdkit-md의 f1-score가 performance가 동일. auc가 더 높은 rdkit-md 사용
+#     args.model = 'logistic'
+#     args.fp_type = 'rdkit'
+#     args.add_md = True
+#     args.cat3tohigh = False
+#     is_smote = True
+# elif (args.tg_num == 412) & (args.inhale_type == 'vapour'):
+#     args.model = 'mlp'
+#     args.fp_type = 'maccs'
+#     args.add_md = False
+#     args.cat3tohigh = False
+#     is_smote = True
+# elif (args.tg_num == 413) & (args.inhale_type == 'aerosol'):
+#     # lda, dt, gbt 세 모델의 performance가 동일. auc가 제일 높은 dt 사용
+#     args.model = 'dt'
+#     args.fp_type = 'maccs'
+#     args.add_md = True
+#     args.cat3tohigh = False
+#     is_smote = True
+# elif (args.tg_num == 413) & (args.inhale_type == 'vapour'):
+#     args.model = 'rf'
+#     args.fp_type = 'morgan'
+#     args.add_md = True
+#     args.cat3tohigh = False
+#     is_smote = True
+
+# logging.info('=================================')
+# logging.info('tg{} {} {}'.format(args.tg_num, args.inhale_type, args.model))
+# logging.info('Fingerprints: {}, Use Descriptors: {}'.format(args.fp_type, args.add_md))
+
+# df, drop_idx, x, y = load_data(path = '../data', args = args)
+# df = df.drop(drop_idx).reset_index(drop = True)
+# x_train, x_test, y_train, y_test, train_idx, test_idx = data_split(x, y, args.splitseed)
+
+
+# train_smiles = df.SMILES[train_idx]
+# train_ms = [Chem.MolFromSmiles(i) for i in train_smiles]
+# train_maccs = [MACCSkeys.GenMACCSKeys(i) for i in train_ms]
+
+# train_sim_mat = np.zeros((len(train_maccs), len(train_maccs)))
+# for i in range(len(train_maccs)):
+#     for j in range(len(train_maccs)):
+#         if i <= j:
+#             sim = DataStructs.TanimotoSimilarity(train_maccs[i], train_maccs[j])
+#             train_sim_mat[i, j] = sim
+#             train_sim_mat[j, i] = sim
+
+# test_smiles = df.SMILES[test_idx]
+# test_ms = [Chem.MolFromSmiles(i) for i in test_smiles]
+# test_maccs = [MACCSkeys.GenMACCSKeys(i) for i in test_ms]
+
+# test_sim_mat = np.zeros((len(test_maccs), len(test_maccs)))
+# for i in range(len(test_maccs)):
+#     for j in range(len(test_maccs)):
+#         if i <= j:
+#             sim = DataStructs.TanimotoSimilarity(test_maccs[i], test_maccs[j])
+#             test_sim_mat[i, j] = sim
+#             test_sim_mat[j, i] = sim
+
+# train_similarities = train_sim_mat[np.triu_indices_from(train_sim_mat, k=1)]
+# test_similarities = test_sim_mat[np.triu_indices_from(test_sim_mat, k=1)]
+
+
+# #%%
+# import seaborn as sns
+# import matplotlib.pyplot as plt
+
+# plt.rcParams['figure.dpi'] = 300
+# plt.style.use('bmh')
+
+# plt.figure(figsize=(10, 8))
+# # sns.heatmap(sim_mat)
+# # plt.title(f"TG{args.tg_num}-{args.inhale_type.title()} Tanimoto Similarity Heatmap")
+# sns.histplot(train_similarities, label = 'Train Similarities', kde=True, stat="density", bins=30, alpha = 0.3)
+# sns.histplot(test_similarities, label = 'Test Similarities', kde=True, stat="density", bins=30, alpha = 0.3)
+# plt.xlabel("Tanimoto Similarity")
+# plt.ylabel("Density")
+# plt.legend()
+# plt.show()
+
+
+# #%%
+# from sklearn.decomposition import PCA
+
+# pca = PCA(n_components=2)
+# train_pca = pca.fit_transform(x_train.iloc[:, :167])
+# test_pca = pca.transform(x_test.iloc[:, :167])
+
+# train_mean = np.mean(train_pca, axis=0)
+
+# plt.figure(figsize = (12, 6))
+# plt.scatter(train_pca[:, 0], train_pca[:, 1], color='blue', label='Train Set', alpha=0.5)
+# plt.scatter(test_pca[:, 0], test_pca[:, 1], color='red', label='Test Set', alpha=0.5)
+# plt.scatter(train_mean[0], train_mean[1], color='black', label='Train Mean', marker='x', s=100)
+# plt.title("PCA Scatter Plot of Train and Test Sets")
+# plt.xlabel("Principal Component 1")
+# plt.ylabel("Principal Component 2")
+# plt.legend()
+# plt.show()
+
+
+# #%%
+# from sklearn.manifold import TSNE
+
+# tsne = TSNE(n_components=2, random_state=42)
+# train_tsne = tsne.fit_transform(x_train.iloc[:, :167])
+# test_tsne = tsne.fit_transform(x_test.iloc[:, :167])
+
+# train_mean = np.mean(train_tsne, axis=0)
+
+# plt.figure(figsize=(12, 6))
+# plt.scatter(train_tsne[:, 0], train_tsne[:, 1], color='blue', label='Train Set', alpha=0.5)
+# plt.scatter(test_tsne[:, 0], test_tsne[:, 1], color='red', label='Test Set', alpha=0.5)
+# plt.scatter(train_mean[0], train_mean[1], color='black', label='Train Mean', marker='x', s=100)
+# plt.title("t-SNE Scatter Plot of Train and Test Sets")
+# plt.xlabel("t-SNE Component 1")
+# plt.ylabel("t-SNE Component 2")
+# plt.legend()
+# plt.show()
+# # %%
