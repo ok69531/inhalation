@@ -1,0 +1,1 @@
+Official implementation code for [Inhalation Toxicity Screening of Consumer Products Chemicals using OECD Test Guideline Data-based Machine Learning Models](https://www.sciencedirect.com/science/article/pii/S0304389424020259).
